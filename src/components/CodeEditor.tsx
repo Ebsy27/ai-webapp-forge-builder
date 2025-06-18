@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, FileText } from 'lucide-react';
+import { Copy, Download, FileText, Folder, File } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface CodeEditorProps {
@@ -11,15 +11,15 @@ interface CodeEditorProps {
 }
 
 const CodeEditor = ({ code }: CodeEditorProps) => {
-  const [activeFile, setActiveFile] = useState(Object.keys(code)[0] || 'App.js');
+  const [activeFile, setActiveFile] = useState(Object.keys(code)[0] || 'src/App.tsx');
   const { toast } = useToast();
 
   const copyToClipboard = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       toast({
-        title: "Copied!",
-        description: "Code copied to clipboard",
+        title: "Copied to clipboard",
+        description: "Code copied successfully",
       });
     } catch (err) {
       console.error('Failed to copy:', err);
@@ -41,89 +41,153 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
       setTimeout(() => downloadFile(filename, content), 100);
     });
     toast({
-      title: "Download Started",
+      title: "Download started",
       description: "All files are being downloaded",
     });
   };
 
+  const getFileIcon = (filename: string) => {
+    if (filename.includes('/')) return <File className="w-4 h-4" />;
+    if (filename === 'package.json') return <FileText className="w-4 h-4" />;
+    return <File className="w-4 h-4" />;
+  };
+
+  const getFileStructure = () => {
+    const structure: Record<string, string[]> = {};
+    Object.keys(code).forEach(filename => {
+      if (filename.includes('/')) {
+        const parts = filename.split('/');
+        const folder = parts[0];
+        if (!structure[folder]) structure[folder] = [];
+        structure[folder].push(filename);
+      } else {
+        if (!structure['root']) structure['root'] = [];
+        structure['root'].push(filename);
+      }
+    });
+    return structure;
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white flex items-center">
-          <FileText className="w-6 h-6 mr-2 text-purple-400" />
-          Generated Code
-        </h2>
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-accent rounded-lg flex items-center justify-center">
+            <FileText className="w-4 h-4 text-primary-foreground" />
+          </div>
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Generated Code</h2>
+            <p className="text-sm text-muted-foreground">Professional file structure</p>
+          </div>
+        </div>
         <Button
           onClick={downloadAllFiles}
-          className="bg-purple-600 hover:bg-purple-700"
+          size="sm"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           <Download className="w-4 h-4 mr-2" />
-          Download All
+          Download Project
         </Button>
       </div>
 
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-white">Professional File Structure</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeFile} onValueChange={setActiveFile}>
-            <TabsList className="grid grid-cols-2 bg-gray-700 border-gray-600 mb-4">
-              {Object.keys(code).map((filename) => (
-                <TabsTrigger
-                  key={filename}
-                  value={filename}
-                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300"
-                >
-                  {filename}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {Object.entries(code).map(([filename, content]) => (
-              <TabsContent key={filename} value={filename}>
-                <div className="relative">
-                  <div className="absolute top-2 right-2 z-10">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(content)}
-                      className="bg-gray-700 border-gray-600 hover:bg-gray-600"
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* File Explorer */}
+        <Card className="bg-card border-border lg:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-foreground flex items-center">
+              <Folder className="w-4 h-4 mr-2 text-primary" />
+              Project Files
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="space-y-1">
+              {Object.entries(getFileStructure()).map(([folder, files]) => (
+                <div key={folder} className="px-3 pb-2">
+                  {folder !== 'root' && (
+                    <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                      <Folder className="w-3 h-3 mr-1" />
+                      {folder}
+                    </div>
+                  )}
+                  {files.map((filename) => (
+                    <button
+                      key={filename}
+                      onClick={() => setActiveFile(filename)}
+                      className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center transition-colors ${
+                        activeFile === filename
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                      }`}
                     >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code className="text-gray-100 whitespace-pre-wrap">
-                      {content}
-                    </code>
-                  </pre>
+                      {getFileIcon(filename)}
+                      <span className="ml-2 truncate">
+                        {filename.includes('/') ? filename.split('/').pop() : filename}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-gray-800 border-gray-700">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-            <div className="space-y-2">
-              <div className="text-2xl font-bold text-purple-400">React</div>
-              <div className="text-sm text-gray-300">Frontend Framework</div>
+        {/* Code View */}
+        <Card className="bg-card border-border lg:col-span-3">
+          <CardHeader className="border-b border-border">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium text-foreground flex items-center">
+                {getFileIcon(activeFile)}
+                <span className="ml-2">{activeFile}</span>
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => copyToClipboard(code[activeFile])}
+                className="bg-secondary border-border hover:bg-accent text-foreground"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
             </div>
-            <div className="space-y-2">
-              <div className="text-2xl font-bold text-blue-400">Node.js</div>
-              <div className="text-sm text-gray-300">Backend Runtime</div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="relative">
+              <pre className="bg-secondary/50 p-4 text-sm overflow-x-auto max-h-[500px] overflow-y-auto language-typescript">
+                <code className="text-foreground whitespace-pre-wrap font-mono leading-relaxed">
+                  {code[activeFile]}
+                </code>
+              </pre>
             </div>
-            <div className="space-y-2">
-              <div className="text-2xl font-bold text-green-400">Express</div>
-              <div className="text-sm text-gray-300">Server Framework</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 text-center">
+            <div className="text-xl font-bold text-primary mb-1">{Object.keys(code).length}</div>
+            <div className="text-xs text-muted-foreground">Files Generated</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 text-center">
+            <div className="text-xl font-bold text-green-400 mb-1">React</div>
+            <div className="text-xs text-muted-foreground">Framework</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 text-center">
+            <div className="text-xl font-bold text-blue-400 mb-1">TypeScript</div>
+            <div className="text-xs text-muted-foreground">Language</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardContent className="p-4 text-center">
+            <div className="text-xl font-bold text-purple-400 mb-1">Vite</div>
+            <div className="text-xs text-muted-foreground">Build Tool</div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

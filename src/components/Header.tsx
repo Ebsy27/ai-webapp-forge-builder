@@ -1,38 +1,33 @@
 
-import { Sparkles } from 'lucide-react';
+import { Code2, Zap } from 'lucide-react';
 
 const Header = () => {
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3">
-      <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-white" />
+    <header className="bg-card border-b border-border px-6 py-4 shadow-professional">
+      <div className="container mx-auto flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center shadow-professional">
+            <Code2 className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-gray-900">Hybrid AI Builder</h1>
-            <p className="text-xs text-gray-500">10% Local LLM first + 90% Groq for optimal quality & reliability</p>
+            <h1 className="text-xl font-semibold text-foreground">AI NG WebApp Builder</h1>
+            <p className="text-sm text-muted-foreground font-normal">
+              Professional AI-Powered Development Platform
+            </p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span className="text-xs text-gray-600">Local LLM + Groq Ready</span>
-          </div>
-          
+        <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
-            <button className="px-3 py-1.5 text-sm text-gray-700 hover:text-purple-600 border-b-2 border-transparent hover:border-purple-600 transition-colors">
-              Live Preview
-            </button>
-            <button className="px-3 py-1.5 text-sm text-purple-600 border-b-2 border-purple-600">
-              Source Code
-            </button>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+              <span className="text-sm text-muted-foreground font-medium">Hybrid AI Ready</span>
+            </div>
+            <div className="flex items-center space-x-1 bg-secondary px-3 py-1.5 rounded-lg">
+              <Zap className="w-3 h-3 text-primary" />
+              <span className="text-xs text-foreground font-medium">70% GROQ + 30% Local</span>
+            </div>
           </div>
-          
-          <button className="px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-            Export Project
-          </button>
         </div>
       </div>
     </header>

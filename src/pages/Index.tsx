@@ -1,131 +1,71 @@
 
 import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from '../components/ChatInterface';
 import CodeEditor from '../components/CodeEditor';
 import PreviewPane from '../components/PreviewPane';
 import Header from '../components/Header';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<'chat' | 'code' | 'preview'>('chat');
   const [generatedCode, setGeneratedCode] = useState({
-    'App.jsx': `import React, { useState } from 'react';
-import { CheckCircle, Star, Users, TrendingUp, Shield, Globe, Menu, X, ArrowRight } from 'lucide-react';
+    'src/App.tsx': `import React from 'react';
+import './App.css';
 
-const PleasApp = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+function App() {
   return (
-    <div className="min-h-screen bg-white font-['Poppins']">
-      {/* Modern Navigation with glassmorphism */}
-      <nav className="fixed top-0 w-full backdrop-blur-xl bg-white/80 border-b border-white/20 z-50 shadow-lg shadow-slate-900/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex justify-between items-center w-20">
-              <div className="w-12 h-12 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <span className="text-white font-bold text-lg">Sm</span>
-              </div>
-              <span className="ml-4 text-xl font-bold text-slate-900">SmartHealth</span>
-            </div>
-
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200">Features</a>
-              <a href="#about" className="text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200">About</a>
-              <a href="#contact" className="text-slate-600 hover:text-slate-900 font-medium transition-colors duration-200">Contact</a>
-              <button className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all duration-200">
-                Get Started
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section with professional background */}
-      <section className="py-24 md:py-32 lg:py-40 relative bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-8 leading-tight">
-              Next-Generation
-              <br />
-              <span className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-                Healthcare Technology
-              </span>
-              <br />
-              That Saves Lives
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-4xl mx-auto leading-relaxed">
-              Transform patient care with AI-powered diagnostics, streamlined workflows, and HIPAA-compliant solutions trusted by leading medical institutions.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white font-semibold py-4 px-8 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all duration-200 flex items-center">
-                Start Free Trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </button>
-              <button className="bg-white/80 backdrop-blur-sm text-slate-700 font-semibold py-4 px-8 rounded-xl border border-slate-200 hover:bg-white transition-colors duration-200">
-                Watch Demo
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="App">
+      <header className="App-header">
+        <h1>Welcome to your AI Generated App</h1>
+        <p>Start chatting to generate your web application!</p>
+      </header>
     </div>
   );
-};
+}
 
-export default PleasApp;`,
-    'index.js': `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);`,
-    'index.css': `.App {
+export default App;`,
+    'src/App.css': `.App {
   text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 40px 20px;
+  color: white;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
 }
 
-.App-link {
-  color: #61dafb;
+h1 {
+  color: #06d6a0;
+  margin-bottom: 24px;
+  font-weight: 600;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+p {
+  color: #cbd5e1;
+  font-weight: 400;
 }`,
     'package.json': `{
   "name": "ai-generated-app",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "lucide-react": "^0.263.1"
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^4.4.5"
   }
 }`
   });
@@ -135,10 +75,158 @@ root.render(
   const handleCodeGeneration = async (userMessage: string, files?: FileList) => {
     setIsGenerating(true);
     console.log('Generating code for:', userMessage);
+    console.log('Files:', files);
 
     try {
+      // Simulate API call - replace with actual GROQ + Local LLM integration
       await new Promise(resolve => setTimeout(resolve, 2000));
-      setActiveTab('code');
+      
+      // Mock generated code based on user input
+      const newCode = {
+        'src/App.tsx': `import React, { useState } from 'react';
+import './App.css';
+
+function App() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <h1>Generated: ${userMessage.slice(0, 40)}...</h1>
+        <div className="counter-section">
+          <div className="counter">
+            <button 
+              className="counter-btn" 
+              onClick={() => setCount(count - 1)}
+              aria-label="Decrease count"
+            >
+              −
+            </button>
+            <span className="count-display">{count}</span>
+            <button 
+              className="counter-btn" 
+              onClick={() => setCount(count + 1)}
+              aria-label="Increase count"
+            >
+              +
+            </button>
+          </div>
+          <p className="description">Professional counter app generated by AI</p>
+        </div>
+      </header>
+    </div>
+  );
+}
+
+export default App;`,
+        'src/App.css': `.App {
+  text-align: center;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  padding: 40px 20px;
+  color: white;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.App-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: #06d6a0;
+  margin-bottom: 40px;
+  font-weight: 600;
+  font-size: 2.5rem;
+  line-height: 1.2;
+}
+
+.counter-section {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(6, 214, 160, 0.2);
+  border-radius: 16px;
+  padding: 32px;
+  margin: 20px 0;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.counter-btn {
+  background: linear-gradient(135deg, #06d6a0 0%, #059669 100%);
+  border: none;
+  color: #0f172a;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(6, 214, 160, 0.3);
+}
+
+.count-display {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #06d6a0;
+  min-width: 60px;
+}
+
+.description {
+  color: #cbd5e1;
+  font-weight: 400;
+  margin: 0;
+  font-size: 1rem;
+}`,
+        'package.json': `{
+  "name": "ai-generated-counter-app",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^4.4.5"
+  }
+}`,
+        'vite.config.js': `import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    host: true
+  }
+})`
+      };
+      
+      setGeneratedCode(newCode);
     } catch (error) {
       console.error('Error generating code:', error);
     } finally {
@@ -147,33 +235,47 @@ root.render(
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="flex h-[calc(100vh-73px)]">
-        {/* Chat Interface - Left Side */}
-        {activeTab === 'chat' && (
-          <div className="w-full max-w-md border-r border-gray-200 bg-white">
+      <div className="container mx-auto px-6 py-8">
+        <Tabs defaultValue="chat" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-professional">
+            <TabsTrigger 
+              value="chat" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+            >
+              Chat
+            </TabsTrigger>
+            <TabsTrigger 
+              value="code" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+            >
+              Code
+            </TabsTrigger>
+            <TabsTrigger 
+              value="preview" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+            >
+              Preview
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="chat" className="mt-6">
             <ChatInterface 
               onGenerateCode={handleCodeGeneration}
               isGenerating={isGenerating}
             />
-          </div>
-        )}
-        
-        {/* Code Editor - Middle */}
-        {activeTab === 'code' && (
-          <div className="flex-1 flex">
+          </TabsContent>
+          
+          <TabsContent value="code" className="mt-6">
             <CodeEditor code={generatedCode} />
-          </div>
-        )}
-        
-        {/* Preview - Right Side */}
-        {activeTab === 'preview' && (
-          <div className="flex-1">
+          </TabsContent>
+          
+          <TabsContent value="preview" className="mt-6">
             <PreviewPane code={generatedCode} />
-          </div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

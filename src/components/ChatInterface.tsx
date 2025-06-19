@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send, Paperclip, Loader2, User, Bot } from 'lucide-react';
+import { Send, Paperclip, Loader2, User, Bot, Sparkles } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -22,7 +22,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hi! I'm your AI assistant. Describe what you want to build and I'll create it for you instantly with professional images and modern fonts!",
+      text: "👋 Hello! I'm your AI-powered web application builder. I can create modern, responsive websites with beautiful designs, professional fonts, and engaging user interfaces.\n\n✨ Just describe what you want to build, and I'll generate it using our hybrid AI system (70% GROQ + 30% Local LLM)!\n\n💡 Try something like:\n• \"Create a calculator app\"\n• \"Build a todo list application\"\n• \"Make a portfolio website\"\n• \"Design a landing page for a restaurant\"",
       sender: 'ai',
       timestamp: new Date()
     }
@@ -47,10 +47,10 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
     setAttachedFiles(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    // Add enhanced thinking message
+    // Enhanced thinking message
     const thinkingMessage: Message = {
       id: (Date.now() + 1).toString(),
-      text: "🚀 Initializing AI hybrid system... Using 70% GROQ API + 30% Local LLM to generate your professional web application with modern designs and responsive layouts...",
+      text: "🚀 Initializing AI hybrid system...\n📡 Connecting to GROQ API (70%)\n🖥️ Engaging Local LLM (30%)\n🎨 Generating professional web application with modern designs...",
       sender: 'ai',
       timestamp: new Date()
     };
@@ -63,7 +63,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: `✨ Perfect! I've generated your professional web application using our hybrid AI system (GROQ + Local LLM) based on: "${inputText}". The application features modern designs, responsive layouts, and clean UI templates. Check out the Code and Preview tabs to see your new app in action!`,
+          text: `🎉 Perfect! I've successfully generated your professional web application!\n\n✅ **Generated for:** "${inputText}"\n🎨 **Features:** Modern design, responsive layout, professional typography\n⚡ **Technology:** React + CSS with advanced styling\n\n📋 Check out the **Code** tab to see the generated files\n👁️ Visit the **Preview** tab to see your app in action!\n\n🚀 Your application is ready to use and can be further customized!`,
           sender: 'ai',
           timestamp: new Date()
         })
@@ -72,7 +72,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: "I apologize, but I encountered an error while connecting to our AI services. The system is attempting to use fallback generation. Please check that both GROQ API and Local LLM are accessible and try again.",
+          text: "⚠️ I encountered an issue while connecting to our AI services. However, I've generated a fallback application for you.\n\n🔧 **Status:** Using backup generation system\n📝 **Note:** The APIs might need configuration\n\n💡 **What's working:** You can still see a functional app in the Preview tab!\n\n🔄 Feel free to try again or describe a different type of application.",
           sender: 'ai',
           timestamp: new Date()
         })
@@ -89,40 +89,63 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
   };
 
   return (
-    <div className="flex flex-col h-[600px] bg-gray-800 rounded-lg border border-gray-700">
+    <div className="flex flex-col h-[600px] bg-white rounded-lg border border-gray-200 shadow-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">AI WebApp Builder</h3>
+            <p className="text-xs text-gray-500">Hybrid AI • GROQ + Local LLM</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span className="text-xs text-gray-500 font-medium">Online</span>
+        </div>
+      </div>
+
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`flex items-start space-x-3 max-w-[80%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            <div className={`flex items-start space-x-3 max-w-[85%] ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                 message.sender === 'user' 
-                  ? 'bg-purple-600' 
-                  : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                  : 'bg-gradient-to-br from-emerald-500 to-teal-600'
               }`}>
-                {message.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {message.sender === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
               </div>
               
               <Card className={`${
                 message.sender === 'user' 
-                  ? 'bg-purple-600 border-purple-500' 
-                  : 'bg-gray-700 border-gray-600'
-              }`}>
-                <CardContent className="p-4">
-                  <p className="text-white text-sm">{message.text}</p>
+                  ? 'bg-blue-500 border-blue-400' 
+                  : 'bg-white border-gray-200'
+              } shadow-sm`}>
+                <CardContent className="p-3">
+                  <p className={`text-sm leading-relaxed whitespace-pre-line ${
+                    message.sender === 'user' ? 'text-white' : 'text-gray-700'
+                  }`}>
+                    {message.text}
+                  </p>
                   {message.files && message.files.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {message.files.map((file, index) => (
-                        <div key={index} className="text-xs text-gray-300 bg-gray-600 px-2 py-1 rounded">
+                        <div key={index} className="text-xs bg-white/20 text-white px-2 py-1 rounded inline-block mr-2">
                           📎 {file.name}
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="text-xs text-gray-300 mt-2">
+                  <div className={`text-xs mt-2 ${
+                    message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'
+                  }`}>
                     {formatTime(message.timestamp)}
                   </div>
                 </CardContent>
@@ -133,15 +156,15 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
         
         {isGenerating && (
           <div className="flex justify-start">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <Loader2 className="w-4 h-4 animate-spin" />
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-white" />
               </div>
-              <Card className="bg-gray-700 border-gray-600">
-                <CardContent className="p-4">
+              <Card className="bg-white border-gray-200 shadow-sm">
+                <CardContent className="p-3">
                   <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-                    <p className="text-white text-sm">Generating your application...</p>
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                    <p className="text-gray-700 text-sm">Generating your application...</p>
                   </div>
                 </CardContent>
               </Card>
@@ -151,14 +174,14 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-700 p-4">
+      <div className="border-t border-gray-200 p-4 bg-gray-50">
         <div className="flex space-x-3">
           <div className="flex-1">
             <Textarea
-              placeholder="Describe what you want to build (calculator, website, todo app, etc.)..."
+              placeholder="Describe what you want to build (e.g., 'Create a modern calculator app with dark theme')..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white placeholder-gray-400 resize-none"
+              className="bg-white border-gray-300 text-gray-700 placeholder-gray-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows={3}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -171,7 +194,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
             {attachedFiles && attachedFiles.length > 0 && (
               <div className="mt-2 space-y-1">
                 {Array.from(attachedFiles).map((file, index) => (
-                  <div key={index} className="text-xs text-gray-300 bg-gray-600 px-2 py-1 rounded inline-block mr-2">
+                  <div key={index} className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block mr-2">
                     📎 {file.name}
                   </div>
                 ))}
@@ -184,15 +207,15 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
               variant="outline"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
-              className="bg-gray-700 border-gray-600 hover:bg-gray-600"
+              className="bg-white border-gray-300 hover:bg-gray-50"
             >
-              <Paperclip className="w-4 h-4 text-gray-300" />
+              <Paperclip className="w-4 h-4 text-gray-500" />
             </Button>
             
             <Button
               onClick={handleSendMessage}
               disabled={(!inputText.trim() && !attachedFiles) || isGenerating}
-              className="bg-purple-600 hover:bg-purple-700"
+              className="bg-blue-500 hover:bg-blue-600 text-white"
             >
               {isGenerating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -214,7 +237,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
         
         <div className="mt-3 text-center">
           <p className="text-xs text-gray-400">
-            Press Shift+Enter for new line • Hybrid AI: 10% Local first, 90% Groq for consistent high quality
+            Press Shift+Enter for new line • Enhanced with Hybrid AI: 70% GROQ + 30% Local LLM
           </p>
         </div>
       </div>

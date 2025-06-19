@@ -13,33 +13,45 @@ export interface GeneratedCode {
   [filename: string]: string;
 }
 
-// System prompts for different aspects of code generation
+// Enhanced system prompts
 const GROQ_SYSTEM_PROMPT = `You are an expert web developer. Generate modern, responsive web applications using React, HTML, CSS, and JavaScript. 
-Focus on creating:
-- Clean, professional designs
-- Modern UI/UX patterns
-- Responsive layouts
-- Professional typography and color schemes
-- Complete functional components
 
-Return only the code files in a JSON format like:
+IMPORTANT: You must return ONLY a valid JSON object in this exact format:
 {
   "src/App.tsx": "React component code here",
-  "src/App.css": "CSS styles here",
-  "package.json": "package.json content"
-}`;
+  "src/App.css": "CSS styles here", 
+  "package.json": "package.json content here"
+}
 
-const LOCAL_LLM_SYSTEM_PROMPT = `You are a web design specialist. Enhance the provided code with:
-- Advanced styling and animations
-- Better user experience
-- Professional color schemes
-- Modern fonts and typography
-- Interactive elements
+Focus on creating:
+- Clean, professional designs with modern UI/UX
+- Responsive layouts that work on all devices
+- Professional typography and color schemes
+- Complete functional components
+- Beautiful styling with gradients and modern effects
 
-Return the enhanced code in the same JSON format.`;
+Do not include any text before or after the JSON. Return only the JSON object.`;
 
-// Call GROQ API (70% of generation)
-async function callGroqAPI(userMessage: string): Promise<any> {
+const LOCAL_LLM_SYSTEM_PROMPT = `You are a web design specialist. Enhance the provided code with advanced styling and better user experience.
+
+IMPORTANT: You must return ONLY a valid JSON object in this exact format:
+{
+  "src/App.tsx": "Enhanced React component code",
+  "src/App.css": "Enhanced CSS styles",
+  "package.json": "Enhanced package.json"
+}
+
+Enhance with:
+- Advanced styling and smooth animations
+- Better user experience and interactivity
+- Professional color schemes and typography
+- Modern design patterns
+- Interactive elements and hover effects
+
+Do not include any text before or after the JSON. Return only the JSON object.`;
+
+// Call GROQ API
+async function callGroqAPI(userMessage: string): Promise<string> {
   try {
     console.log('Calling GROQ API...');
     const response = await fetch(GROQ_API_ENDPOINT, {
@@ -57,7 +69,7 @@ async function callGroqAPI(userMessage: string): Promise<any> {
           },
           {
             role: 'user',
-            content: `Create a modern web application for: ${userMessage}. Make it professional with clean design.`
+            content: `Create a modern, professional web application for: ${userMessage}. Make it visually appealing with clean design, proper spacing, and modern UI elements.`
           }
         ],
         temperature: 0.7,
@@ -66,7 +78,7 @@ async function callGroqAPI(userMessage: string): Promise<any> {
     });
 
     if (!response.ok) {
-      throw new Error(`GROQ API error: ${response.status}`);
+      throw new Error(`GROQ API error: ${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -78,8 +90,8 @@ async function callGroqAPI(userMessage: string): Promise<any> {
   }
 }
 
-// Call Local LLM API (30% of generation)
-async function callLocalLLM(baseCode: string, userMessage: string): Promise<any> {
+// Call Local LLM API
+async function callLocalLLM(baseCode: string, userMessage: string): Promise<string> {
   try {
     console.log('Calling Local LLM API...');
     const response = await fetch(LOCAL_LLM_ENDPOINT, {
@@ -105,7 +117,7 @@ async function callLocalLLM(baseCode: string, userMessage: string): Promise<any>
     });
 
     if (!response.ok) {
-      throw new Error(`Local LLM API error: ${response.status}`);
+      throw new Error(`Local LLM API error: ${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -113,46 +125,84 @@ async function callLocalLLM(baseCode: string, userMessage: string): Promise<any>
     return data.choices[0].message.content;
   } catch (error) {
     console.error('Local LLM API error:', error);
-    // Fallback to base code if local LLM fails
+    // Return base code if local LLM fails
     return baseCode;
   }
 }
 
-// Parse AI response to extract code
+// Enhanced parsing function with better error handling
 function parseCodeResponse(response: string): GeneratedCode {
   try {
-    // Try to parse as JSON first
-    if (response.includes('{') && response.includes('}')) {
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
+    console.log('Parsing AI response...');
+    
+    // Clean the response - remove any markdown code blocks
+    let cleanedResponse = response.trim();
+    
+    // Remove markdown code blocks if present
+    cleanedResponse = cleanedResponse.replace(/```json\s*/g, '');
+    cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
+    
+    // Find JSON object in the response
+    const jsonStart = cleanedResponse.indexOf('{');
+    const jsonEnd = cleanedResponse.lastIndexOf('}') + 1;
+    
+    if (jsonStart === -1 || jsonEnd === 0) {
+      throw new Error('No JSON object found in response');
     }
+    
+    const jsonString = cleanedResponse.substring(jsonStart, jsonEnd);
+    const parsedCode = JSON.parse(jsonString);
+    
+    // Validate that required files are present
+    if (!parsedCode['src/App.tsx'] || !parsedCode['src/App.css'] || !parsedCode['package.json']) {
+      throw new Error('Missing required files in generated code');
+    }
+    
+    console.log('Successfully parsed code response');
+    return parsedCode;
+  } catch (error) {
+    console.error('Error parsing code response:', error);
+    console.log('Raw response:', response);
+    
+    // Return a working fallback
+    return getDefaultCode();
+  }
+}
 
-    // Fallback: create a basic structure if parsing fails
-    return {
-      'src/App.tsx': `import React from 'react';
+// Get default empty state
+function getDefaultCode(): GeneratedCode {
+  return {
+    'src/App.tsx': `import React from 'react';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Generated Application</h1>
-        <p>Based on: ${response.slice(0, 100)}...</p>
+        <h1>Welcome to AI WebApp Builder</h1>
+        <p>Start by describing what you want to build in the chat!</p>
+        <div className="cta-section">
+          <p className="cta-text">💡 Try asking for:</p>
+          <ul className="suggestions">
+            <li>"Create a todo app"</li>
+            <li>"Build a calculator"</li>
+            <li>"Make a portfolio website"</li>
+            <li>"Design a landing page"</li>
+          </ul>
+        </div>
       </header>
     </div>
   );
 }
 
 export default App;`,
-      'src/App.css': `.App {
+    'src/App.css': `.App {
   text-align: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 40px 20px;
   color: white;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .App-header {
@@ -160,15 +210,56 @@ export default App;`,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 h1 {
-  margin-bottom: 24px;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
   font-weight: 600;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cta-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 30px;
+  margin-top: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cta-text {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #f0f0f0;
+}
+
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions li {
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.suggestions li:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }`,
-      'package.json': `{
-  "name": "generated-app",
+    'package.json': `{
+  "name": "ai-webapp-builder",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -185,11 +276,7 @@ h1 {
     "vite": "^4.4.5"
   }
 }`
-    };
-  } catch (error) {
-    console.error('Error parsing code response:', error);
-    throw new Error('Failed to parse generated code');
-  }
+  };
 }
 
 // Main function to generate code using hybrid AI approach
@@ -213,9 +300,20 @@ export async function generateWebApplication(userMessage: string, files?: FileLi
   } catch (error) {
     console.error('Code generation failed:', error);
     
-    // Fallback: return a basic working application
-    return {
-      'src/App.tsx': `import React, { useState } from 'react';
+    // Return enhanced fallback based on user message
+    return createFallbackCode(userMessage);
+  }
+}
+
+// Create a better fallback based on user input
+function createFallbackCode(userMessage: string): GeneratedCode {
+  const appName = userMessage.toLowerCase().includes('calculator') ? 'Calculator' :
+                  userMessage.toLowerCase().includes('todo') ? 'Todo App' :
+                  userMessage.toLowerCase().includes('portfolio') ? 'Portfolio' :
+                  'Generated App';
+  
+  return {
+    'src/App.tsx': `import React, { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -224,27 +322,29 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>AI Generated App</h1>
+        <h1>${appName}</h1>
         <p>Request: ${userMessage}</p>
-        <div className="counter-section">
-          <button onClick={() => setCount(count - 1)}>-</button>
-          <span className="count">{count}</span>
-          <button onClick={() => setCount(count + 1)}>+</button>
+        <div className="content-section">
+          <div className="counter">
+            <button onClick={() => setCount(count - 1)} className="btn">-</button>
+            <span className="count">{count}</span>
+            <button onClick={() => setCount(count + 1)} className="btn">+</button>
+          </div>
+          <p className="note">AI generation in progress - this is a fallback app</p>
         </div>
-        <p className="note">Generated with AI hybrid approach</p>
       </header>
     </div>
   );
 }
 
 export default App;`,
-      'src/App.css': `.App {
+    'src/App.css': `.App {
   text-align: center;
-  background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
   padding: 40px 20px;
   color: white;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .App-header {
@@ -257,40 +357,68 @@ export default App;`,
 }
 
 h1 {
+  font-size: 3rem;
   margin-bottom: 20px;
-  font-weight: 600;
-  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.counter-section {
+.content-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 40px;
   margin: 30px 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.counter {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 20px;
+  margin-bottom: 20px;
 }
 
-.counter-section button {
-  background: rgba(255, 255, 255, 0.2);
+.btn {
+  background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
   border: none;
-  color: white;
-  width: 40px;
-  height: 40px;
+  color: #6366f1;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
-  font-size: 20px;
+  font-size: 24px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
 }
 
 .count {
-  font-size: 2rem;
-  font-weight: bold;
-  min-width: 50px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  min-width: 80px;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .note {
-  margin-top: 20px;
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin: 0;
 }`,
-      'package.json': `{
+    'package.json': `{
   "name": "ai-generated-app",
   "version": "1.0.0",
   "type": "module",
@@ -308,6 +436,5 @@ h1 {
     "vite": "^4.4.5"
   }
 }`
-    };
-  }
+  };
 }

@@ -1,16 +1,16 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, FileText, Folder, File } from 'lucide-react';
+import { Copy, Download, FileText, Folder, File, Code } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface CodeEditorProps {
   code: Record<string, string>;
+  hasGenerated?: boolean;
 }
 
-const CodeEditor = ({ code }: CodeEditorProps) => {
+const CodeEditor = ({ code, hasGenerated = false }: CodeEditorProps) => {
   const [activeFile, setActiveFile] = useState(Object.keys(code)[0] || 'src/App.tsx');
   const { toast } = useToast();
 
@@ -47,9 +47,10 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
   };
 
   const getFileIcon = (filename: string) => {
-    if (filename.includes('/')) return <File className="w-4 h-4" />;
-    if (filename === 'package.json') return <FileText className="w-4 h-4" />;
-    return <File className="w-4 h-4" />;
+    if (filename.includes('.tsx') || filename.includes('.jsx')) return <Code className="w-4 h-4 text-blue-500" />;
+    if (filename.includes('.css')) return <File className="w-4 h-4 text-green-500" />;
+    if (filename === 'package.json') return <FileText className="w-4 h-4 text-orange-500" />;
+    return <File className="w-4 h-4 text-gray-500" />;
   };
 
   const getFileStructure = () => {
@@ -68,22 +69,45 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
     return structure;
   };
 
+  if (!hasGenerated) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[500px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center">
+          <Code className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">No Code Generated Yet</h3>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Start a conversation in the Chat tab to generate your web application. 
+            Describe what you want to build and I'll create the code for you!
+          </p>
+          <div className="bg-white rounded-lg p-4 border border-gray-200 max-w-sm mx-auto">
+            <p className="text-sm text-gray-600 font-medium mb-2">💡 Try asking for:</p>
+            <ul className="text-sm text-gray-500 space-y-1">
+              <li>• "Create a calculator app"</li>
+              <li>• "Build a todo list"</li>
+              <li>• "Make a portfolio website"</li>
+              <li>• "Design a landing page"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-accent rounded-lg flex items-center justify-center">
-            <FileText className="w-4 h-4 text-primary-foreground" />
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+            <FileText className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">Generated Code</h2>
-            <p className="text-sm text-muted-foreground">Professional file structure</p>
+            <h2 className="text-xl font-semibold text-gray-900">Generated Code</h2>
+            <p className="text-sm text-gray-500">Professional file structure • Ready to use</p>
           </div>
         </div>
         <Button
           onClick={downloadAllFiles}
-          size="sm"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="bg-blue-500 hover:bg-blue-600 text-white shadow-sm"
         >
           <Download className="w-4 h-4 mr-2" />
           Download Project
@@ -92,10 +116,10 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* File Explorer */}
-        <Card className="bg-card border-border lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-foreground flex items-center">
-              <Folder className="w-4 h-4 mr-2 text-primary" />
+        <Card className="bg-white border border-gray-200 lg:col-span-1 shadow-sm">
+          <CardHeader className="pb-3 bg-gray-50 border-b border-gray-200">
+            <CardTitle className="text-sm font-medium text-gray-700 flex items-center">
+              <Folder className="w-4 h-4 mr-2 text-blue-500" />
               Project Files
             </CardTitle>
           </CardHeader>
@@ -104,7 +128,7 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
               {Object.entries(getFileStructure()).map(([folder, files]) => (
                 <div key={folder} className="px-3 pb-2">
                   {folder !== 'root' && (
-                    <div className="text-xs font-medium text-muted-foreground mb-1 flex items-center">
+                    <div className="text-xs font-medium text-gray-500 mb-1 flex items-center py-2">
                       <Folder className="w-3 h-3 mr-1" />
                       {folder}
                     </div>
@@ -113,10 +137,10 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
                     <button
                       key={filename}
                       onClick={() => setActiveFile(filename)}
-                      className={`w-full text-left text-xs px-2 py-1.5 rounded flex items-center transition-colors ${
+                      className={`w-full text-left text-xs px-2 py-2 rounded flex items-center transition-colors ${
                         activeFile === filename
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                          ? 'bg-blue-500 text-white'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
                       {getFileIcon(filename)}
@@ -132,10 +156,10 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
         </Card>
 
         {/* Code View */}
-        <Card className="bg-card border-border lg:col-span-3">
-          <CardHeader className="border-b border-border">
+        <Card className="bg-white border border-gray-200 lg:col-span-3 shadow-sm">
+          <CardHeader className="border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-foreground flex items-center">
+              <CardTitle className="text-sm font-medium text-gray-700 flex items-center">
                 {getFileIcon(activeFile)}
                 <span className="ml-2">{activeFile}</span>
               </CardTitle>
@@ -143,7 +167,7 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
                 size="sm"
                 variant="outline"
                 onClick={() => copyToClipboard(code[activeFile])}
-                className="bg-secondary border-border hover:bg-accent text-foreground"
+                className="bg-white border-gray-300 hover:bg-gray-50 text-gray-600"
               >
                 <Copy className="w-4 h-4" />
               </Button>
@@ -151,8 +175,8 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
           </CardHeader>
           <CardContent className="p-0">
             <div className="relative">
-              <pre className="bg-secondary/50 p-4 text-sm overflow-x-auto max-h-[500px] overflow-y-auto language-typescript">
-                <code className="text-foreground whitespace-pre-wrap font-mono leading-relaxed">
+              <pre className="bg-gray-50 p-4 text-sm overflow-x-auto max-h-[500px] overflow-y-auto">
+                <code className="text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">
                   {code[activeFile]}
                 </code>
               </pre>
@@ -161,30 +185,30 @@ const CodeEditor = ({ code }: CodeEditorProps) => {
         </Card>
       </div>
 
-      {/* Stats */}
+      {/* Project Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-card border-border">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-xl font-bold text-primary mb-1">{Object.keys(code).length}</div>
-            <div className="text-xs text-muted-foreground">Files Generated</div>
+            <div className="text-2xl font-bold text-blue-500 mb-1">{Object.keys(code).length}</div>
+            <div className="text-xs text-gray-500">Files Generated</div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-xl font-bold text-green-400 mb-1">React</div>
-            <div className="text-xs text-muted-foreground">Framework</div>
+            <div className="text-2xl font-bold text-green-500 mb-1">React</div>
+            <div className="text-xs text-gray-500">Framework</div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-xl font-bold text-blue-400 mb-1">TypeScript</div>
-            <div className="text-xs text-muted-foreground">Language</div>
+            <div className="text-2xl font-bold text-purple-500 mb-1">TypeScript</div>
+            <div className="text-xs text-gray-500">Language</div>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-xl font-bold text-purple-400 mb-1">Vite</div>
-            <div className="text-xs text-muted-foreground">Build Tool</div>
+            <div className="text-2xl font-bold text-orange-500 mb-1">Vite</div>
+            <div className="text-xs text-gray-500">Build Tool</div>
           </CardContent>
         </Card>
       </div>

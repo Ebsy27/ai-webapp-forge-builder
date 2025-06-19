@@ -16,8 +16,17 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Welcome to your AI Generated App</h1>
-        <p>Start chatting to generate your web application!</p>
+        <h1>Welcome to AI WebApp Builder</h1>
+        <p>Start by describing what you want to build in the chat!</p>
+        <div className="cta-section">
+          <p className="cta-text">💡 Try asking for:</p>
+          <ul className="suggestions">
+            <li>"Create a todo app"</li>
+            <li>"Build a calculator"</li>
+            <li>"Make a portfolio website"</li>
+            <li>"Design a landing page"</li>
+          </ul>
+        </div>
       </header>
     </div>
   );
@@ -26,11 +35,11 @@ function App() {
 export default App;`,
     'src/App.css': `.App {
   text-align: center;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 40px 20px;
   color: white;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .App-header {
@@ -38,21 +47,56 @@ export default App;`,
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 h1 {
-  color: #06d6a0;
-  margin-bottom: 24px;
+  font-size: 2.5rem;
+  margin-bottom: 20px;
   font-weight: 600;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-p {
-  color: #cbd5e1;
-  font-weight: 400;
+.cta-section {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 30px;
+  margin-top: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cta-text {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #f0f0f0;
+}
+
+.suggestions {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions li {
+  background: rgba(255, 255, 255, 0.1);
+  margin: 8px 0;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.suggestions li:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }`,
     'package.json': `{
-  "name": "ai-generated-app",
+  "name": "ai-webapp-builder",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -72,6 +116,7 @@ p {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
 
   const handleCodeGeneration = async (userMessage: string, files?: FileList) => {
     setIsGenerating(true);
@@ -79,12 +124,12 @@ p {
     console.log('Files attached:', files);
 
     try {
-      // Use the integrated AI service with GROQ and Local LLM
       const newCode = await generateWebApplication(userMessage, files);
       setGeneratedCode(newCode);
+      setHasGeneratedCode(true);
     } catch (error) {
       console.error('Error generating code:', error);
-      // Keep existing fallback code for error cases
+      // Enhanced fallback code
       const fallbackCode = {
         'src/App.tsx': `import React, { useState } from 'react';
 import './App.css';
@@ -95,7 +140,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Error Recovery: ${userMessage.slice(0, 40)}...</h1>
+        <h1>Generated App: ${userMessage.slice(0, 30)}...</h1>
         <div className="counter-section">
           <div className="counter">
             <button 
@@ -114,7 +159,7 @@ function App() {
               +
             </button>
           </div>
-          <p className="description">Fallback app - API integration in progress</p>
+          <p className="description">AI generation fallback - Working on API integration</p>
         </div>
       </header>
     </div>
@@ -200,7 +245,7 @@ h1 {
   font-size: 1rem;
 }`,
         'package.json': `{
-  "name": "ai-generated-counter-app",
+  "name": "ai-generated-fallback-app",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -216,49 +261,40 @@ h1 {
     "@vitejs/plugin-react": "^4.0.3",
     "vite": "^4.4.5"
   }
-}`,
-        'vite.config.js': `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    host: true
-  }
-})`
+}`
       };
       
       setGeneratedCode(fallbackCode);
+      setHasGeneratedCode(true);
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-card border border-border shadow-professional">
+          <TabsList className="grid w-full grid-cols-3 bg-white border border-gray-200 shadow-sm rounded-lg">
             <TabsTrigger 
               value="chat" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-gray-600 font-medium transition-all"
             >
-              Chat
+              💬 Chat
             </TabsTrigger>
             <TabsTrigger 
               value="code" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-gray-600 font-medium transition-all"
             >
-              Code
+              📝 Code
             </TabsTrigger>
             <TabsTrigger 
               value="preview" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground font-medium"
+              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white text-gray-600 font-medium transition-all"
             >
-              Preview
+              👁️ Preview
             </TabsTrigger>
           </TabsList>
           
@@ -270,11 +306,11 @@ export default defineConfig({
           </TabsContent>
           
           <TabsContent value="code" className="mt-6">
-            <CodeEditor code={generatedCode} />
+            <CodeEditor code={generatedCode} hasGenerated={hasGeneratedCode} />
           </TabsContent>
           
           <TabsContent value="preview" className="mt-6">
-            <PreviewPane code={generatedCode} />
+            <PreviewPane code={generatedCode} hasGenerated={hasGeneratedCode} />
           </TabsContent>
         </Tabs>
       </div>

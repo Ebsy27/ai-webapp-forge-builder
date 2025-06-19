@@ -8,7 +8,7 @@ import Header from '../components/Header';
 import { generateWebApplication, GeneratedCode } from '../services/aiService';
 
 const Index = () => {
-  // Initialize with empty state instead of default welcome content
+  // Initialize with empty state
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
@@ -20,81 +20,75 @@ const Index = () => {
     try {
       const newCode = await generateWebApplication(userMessage, files);
       console.log('✅ Code generation successful, updating state...');
+      console.log('Generated files:', Object.keys(newCode));
       
       setGeneratedCode(newCode);
       setHasGeneratedCode(true);
       
-      console.log('📝 Generated files:', Object.keys(newCode));
     } catch (error) {
       console.error('❌ Code generation failed:', error);
       
-      // Create a meaningful error fallback
+      // Create a meaningful error fallback with proper Sandpack structure
       const errorFallback: GeneratedCode = {
-        'src/App.tsx': `import React from 'react';
-import './App.css';
+        '/src/App.js': { 
+          code: `import React from 'react';
 
 function App() {
   return (
-    <div className="App">
-      <div className="error-container">
-        <h1>⚠️ Generation Error</h1>
-        <p>There was an issue generating your application.</p>
-        <div className="error-details">
-          <p><strong>Request:</strong> "${userMessage}"</p>
-          <p><strong>Status:</strong> API connection failed</p>
-          <p><strong>Fallback:</strong> Basic template loaded</p>
-        </div>
-        <button onClick={() => window.location.reload()} className="retry-button">
-          🔄 Try Again
-        </button>
+    <div className="error-container">
+      <h1>⚠️ Generation Error</h1>
+      <p>There was an issue generating your application.</p>
+      <div className="error-details">
+        <p><strong>Request:</strong> "${userMessage}"</p>
+        <p><strong>Status:</strong> API connection failed</p>
+        <p><strong>Fallback:</strong> Basic template loaded</p>
       </div>
+      <button onClick={() => window.location.reload()} className="retry-button">
+        🔄 Try Again
+      </button>
     </div>
   );
 }
 
-export default App;`,
-        'src/App.css': `.App {
+export default App;` 
+        },
+        '/src/index.js': { 
+          code: `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);` 
+        },
+        '/src/App.css': { 
+          code: `.error-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 20px;
   font-family: 'Inter', sans-serif;
-}
-
-.error-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 24px;
-  padding: 40px;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  width: 100%;
+  color: white;
 }
 
 .error-container h1 {
-  color: #d63031;
-  margin: 0 0 20px 0;
   font-size: 2rem;
-}
-
-.error-container p {
-  color: #636e72;
-  margin: 10px 0;
+  margin-bottom: 20px;
 }
 
 .error-details {
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 20px;
   margin: 20px 0;
-  text-align: left;
+  backdrop-filter: blur(10px);
 }
 
 .retry-button {
-  background: linear-gradient(135deg, #00b894, #00a085);
+  background: #00b894;
   color: white;
   border: none;
   border-radius: 12px;
@@ -106,25 +100,32 @@ export default App;`,
 
 .retry-button:hover {
   transform: translateY(-2px);
-}`,
-        'package.json': `{
+}` 
+        },
+        '/public/index.html': { 
+          code: `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Error - App Generation Failed</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>` 
+        },
+        '/package.json': { 
+          code: `{
   "name": "error-fallback-app",
   "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
+  "private": true,
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.3",
-    "vite": "^4.4.5"
   }
-}`
+}` 
+        }
       };
       
       setGeneratedCode(errorFallback);

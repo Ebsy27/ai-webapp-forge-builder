@@ -5,7 +5,7 @@ import { Eye, ExternalLink, Play } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
 interface PreviewPaneProps {
-  code: Record<string, string>;
+  code: Record<string, { code: string }>;
   hasGenerated?: boolean;
 }
 
@@ -35,18 +35,46 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
   }
 
   // Prepare files for Sandpack with proper structure
-  const sandpackFiles = {
-    "/src/App.js": {
-      code: code['src/App.tsx'] || '// No App.tsx found',
-      active: true
-    },
-    "/src/App.css": {
-      code: code['src/App.css'] || '/* No styles found */'
-    },
-    "/package.json": {
-      code: code['package.json'] || '{"name": "app", "dependencies": {"react": "^18.2.0", "react-dom": "^18.2.0"}}'
+  console.log('📝 Preparing Sandpack files from:', Object.keys(code));
+  
+  // Convert our code structure to Sandpack format
+  const sandpackFiles: Record<string, string> = {};
+  
+  Object.entries(code).forEach(([filepath, fileContent]) => {
+    if (fileContent && fileContent.code) {
+      sandpackFiles[filepath] = fileContent.code;
+      console.log(`✅ Added file: ${filepath} (${fileContent.code.length} chars)`);
     }
-  };
+  });
+
+  // Ensure we have the minimum required files
+  if (!sandpackFiles['/src/App.js']) {
+    console.warn('⚠️ Missing /src/App.js, adding fallback');
+    sandpackFiles['/src/App.js'] = `import React from 'react';
+
+function App() {
+  return (
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h1>Hello World</h1>
+      <p>Your app is loading...</p>
+    </div>
+  );
+}
+
+export default App;`;
+  }
+
+  if (!sandpackFiles['/src/index.js']) {
+    console.warn('⚠️ Missing /src/index.js, adding fallback');
+    sandpackFiles['/src/index.js'] = `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);`;
+  }
+
+  console.log('🎯 Final Sandpack files:', Object.keys(sandpackFiles));
 
   return (
     <div className="space-y-6">
@@ -66,22 +94,28 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
           className="bg-white border-gray-300 hover:bg-gray-50 text-gray-600"
           onClick={() => {
             const newWindow = window.open('', '_blank');
-            if (newWindow) {
-              newWindow.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <title>Generated App Preview</title>
-                  <style>${code['src/App.css'] || ''}</style>
-                </head>
-                <body>
+            if (newWindow && sandpackFiles['/public/index.html'] && sandpackFiles['/src/App.js']) {
+              const htmlContent = sandpackFiles['/public/index.html'];
+              const appCode = sandpackFiles['/src/App.js'];
+              const cssCode = sandpackFiles['/src/App.css'] || '';
+              
+              // Create a simple HTML page with the React app
+              const fullHtml = htmlContent
+                .replace('</head>', `<style>${cssCode}</style></head>`)
+                .replace('<div id="root"></div>', `
                   <div id="root"></div>
-                  <script type="module">
-                    ${code['src/App.tsx']?.replace('export default App;', 'document.getElementById("root").innerHTML = "<div>App content here</div>";') || ''}
+                  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+                  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+                  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+                  <script type="text/babel">
+                    ${appCode}
+                    const root = ReactDOM.createRoot(document.getElementById('root'));
+                    root.render(React.createElement(App));
                   </script>
-                </body>
-                </html>
-              `);
+                `);
+              
+              newWindow.document.write(fullHtml);
+              newWindow.document.close();
             }
           }}
         >

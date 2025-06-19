@@ -47,10 +47,10 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
     setAttachedFiles(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    // Add thinking message
+    // Add enhanced thinking message
     const thinkingMessage: Message = {
       id: (Date.now() + 1).toString(),
-      text: "I'm analyzing your request and generating the perfect web application for you...",
+      text: "🚀 Initializing AI hybrid system... Using 70% GROQ API + 30% Local LLM to generate your professional web application with modern designs and responsive layouts...",
       sender: 'ai',
       timestamp: new Date()
     };
@@ -63,7 +63,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: `✨ Perfect! I've generated your web application based on: "${inputText}". Check out the Code and Preview tabs to see your new app in action!`,
+          text: `✨ Perfect! I've generated your professional web application using our hybrid AI system (GROQ + Local LLM) based on: "${inputText}". The application features modern designs, responsive layouts, and clean UI templates. Check out the Code and Preview tabs to see your new app in action!`,
           sender: 'ai',
           timestamp: new Date()
         })
@@ -72,7 +72,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: "I apologize, but I encountered an error while generating your application. Please try again.",
+          text: "I apologize, but I encountered an error while connecting to our AI services. The system is attempting to use fallback generation. Please check that both GROQ API and Local LLM are accessible and try again.",
           sender: 'ai',
           timestamp: new Date()
         })

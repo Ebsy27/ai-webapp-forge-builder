@@ -135,6 +135,17 @@ root.render(<App />);`
     }
   };
 
+  // Transform GeneratedCode to the format expected by components
+  const transformCodeForEditor = (code: GeneratedCode): Record<string, string> => {
+    const transformed: Record<string, string> = {};
+    Object.entries(code).forEach(([filepath, fileContent]) => {
+      if (fileContent && fileContent.code) {
+        transformed[filepath] = fileContent.code;
+      }
+    });
+    return transformed;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -170,7 +181,7 @@ root.render(<App />);`
           </TabsContent>
           
           <TabsContent value="code" className="mt-6">
-            <CodeEditor code={generatedCode} hasGenerated={hasGeneratedCode} />
+            <CodeEditor code={transformCodeForEditor(generatedCode)} hasGenerated={hasGeneratedCode} />
           </TabsContent>
           
           <TabsContent value="preview" className="mt-6">

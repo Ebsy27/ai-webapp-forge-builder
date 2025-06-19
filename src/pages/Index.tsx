@@ -1,13 +1,14 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from '../components/ChatInterface';
 import CodeEditor from '../components/CodeEditor';
 import PreviewPane from '../components/PreviewPane';
 import Header from '../components/Header';
-import { generateWebApplication } from '../services/aiService';
+import { generateWebApplication, GeneratedCode } from '../services/aiService';
 
 const Index = () => {
-  const [generatedCode, setGeneratedCode] = useState({
+  const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({
     'src/App.tsx': `import React from 'react';
 import './App.css';
 

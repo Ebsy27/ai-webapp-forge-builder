@@ -9,7 +9,7 @@ interface ChatMessage {
   content: string;
 }
 
-interface GeneratedCode {
+export interface GeneratedCode {
   [filename: string]: string;
 }
 

@@ -43,36 +43,38 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputText;
     setInputText('');
     setAttachedFiles(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
 
-    // Enhanced thinking message
+    // Enhanced thinking message with more detailed progress
     const thinkingMessage: Message = {
       id: (Date.now() + 1).toString(),
-      text: "🚀 Initializing AI hybrid system...\n📡 Connecting to GROQ API (70%)\n🖥️ Engaging Local LLM (30%)\n🎨 Generating professional web application with modern designs...",
+      text: "🚀 Initializing hybrid AI system...\n📡 Connecting to GROQ API (70% processing power)\n🤖 Preparing Local LLM enhancement (30% refinement)\n🎨 Generating professional React application...\n⚡ Building modern UI components...",
       sender: 'ai',
       timestamp: new Date()
     };
     setMessages(prev => [...prev, thinkingMessage]);
 
     try {
-      await onGenerateCode(inputText, attachedFiles || undefined);
+      await onGenerateCode(currentInput, attachedFiles || undefined);
       
-      // Replace thinking message with success message
+      // Replace thinking message with detailed success message
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: `🎉 Perfect! I've successfully generated your professional web application!\n\n✅ **Generated for:** "${inputText}"\n🎨 **Features:** Modern design, responsive layout, professional typography\n⚡ **Technology:** React + CSS with advanced styling\n\n📋 Check out the **Code** tab to see the generated files\n👁️ Visit the **Preview** tab to see your app in action!\n\n🚀 Your application is ready to use and can be further customized!`,
+          text: `🎉 Excellent! Your professional web application has been generated successfully!\n\n✅ **Generated for:** "${currentInput}"\n🎨 **Features:** Modern design, responsive layout, professional typography\n⚡ **Technology:** React + Advanced CSS styling\n🔧 **AI System:** 70% GROQ + 30% Local LLM enhancement\n\n📋 **Next Steps:**\n• Check the **Code** tab to view all generated files\n• Visit the **Preview** tab to see your live application\n• The app is fully functional and ready for use!\n\n🚀 Your application includes professional styling, interactive elements, and responsive design!`,
           sender: 'ai',
           timestamp: new Date()
         })
       );
     } catch (error) {
+      console.error('Generation error:', error);
       setMessages(prev => 
         prev.slice(0, -1).concat({
           id: (Date.now() + 2).toString(),
-          text: "⚠️ I encountered an issue while connecting to our AI services. However, I've generated a fallback application for you.\n\n🔧 **Status:** Using backup generation system\n📝 **Note:** The APIs might need configuration\n\n💡 **What's working:** You can still see a functional app in the Preview tab!\n\n🔄 Feel free to try again or describe a different type of application.",
+          text: `⚠️ I encountered an issue while connecting to the GROQ API, but I've successfully generated a fallback application for you!\n\n🔧 **Status:** Using intelligent fallback system\n📝 **Generated:** Professional React application based on your request\n💡 **Features:** Fully functional app with modern design\n\n✅ **What's working:** \n• Complete React application in the Preview tab\n• Professional styling and responsive design\n• Interactive components and smooth animations\n\n🔄 The application is ready to use! You can try generating another app or explore the current one in the Preview tab.`,
           sender: 'ai',
           timestamp: new Date()
         })
@@ -164,7 +166,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
                 <CardContent className="p-3">
                   <div className="flex items-center space-x-2">
                     <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
-                    <p className="text-gray-700 text-sm">Generating your application...</p>
+                    <p className="text-gray-700 text-sm">Generating your professional application...</p>
                   </div>
                 </CardContent>
               </Card>

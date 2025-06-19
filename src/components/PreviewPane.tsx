@@ -10,7 +10,7 @@ interface PreviewPaneProps {
 }
 
 const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
-  if (!hasGenerated) {
+  if (!hasGenerated || Object.keys(code).length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[500px] bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
         <div className="text-center">
@@ -34,6 +34,20 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
     );
   }
 
+  // Prepare files for Sandpack with proper structure
+  const sandpackFiles = {
+    "/src/App.js": {
+      code: code['src/App.tsx'] || '// No App.tsx found',
+      active: true
+    },
+    "/src/App.css": {
+      code: code['src/App.css'] || '/* No styles found */'
+    },
+    "/package.json": {
+      code: code['package.json'] || '{"name": "app", "dependencies": {"react": "^18.2.0", "react-dom": "^18.2.0"}}'
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -50,6 +64,26 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
           variant="outline"
           size="sm"
           className="bg-white border-gray-300 hover:bg-gray-50 text-gray-600"
+          onClick={() => {
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+              newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <title>Generated App Preview</title>
+                  <style>${code['src/App.css'] || ''}</style>
+                </head>
+                <body>
+                  <div id="root"></div>
+                  <script type="module">
+                    ${code['src/App.tsx']?.replace('export default App;', 'document.getElementById("root").innerHTML = "<div>App content here</div>";') || ''}
+                  </script>
+                </body>
+                </html>
+              `);
+            }
+          }}
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           Open in New Tab
@@ -73,52 +107,24 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
           <div className="h-[600px] rounded-b-lg overflow-hidden">
             <Sandpack
               template="react"
-              files={code}
-              theme={{
-                colors: {
-                  surface1: "#ffffff",
-                  surface2: "#f8f9fa",
-                  surface3: "#f1f3f4",
-                  clickable: "#0066cc",
-                  base: "#323232",
-                  disabled: "#9ca3af",
-                  hover: "#e5e7eb",
-                  accent: "#3b82f6",
-                  error: "#ef4444",
-                  errorSurface: "#fee2e2"
-                },
-                syntax: {
-                  plain: "#24292e",
-                  comment: "#6a737d",
-                  keyword: "#d73a49",
-                  tag: "#22863a",
-                  punctuation: "#24292e",
-                  definition: "#6f42c1",
-                  property: "#005cc5",
-                  static: "#032f62",
-                  string: "#032f62"
-                },
-                font: {
-                  body: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                  mono: '"Fira Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", Monaco, "Lucida Console", monospace',
-                  size: "13px",
-                  lineHeight: "1.4"
-                }
-              }}
+              files={sandpackFiles}
+              theme="light"
               options={{
                 showNavigator: false,
-                showTabs: true,
-                showLineNumbers: true,
+                showTabs: false,
+                showLineNumbers: false,
                 showInlineErrors: true,
                 wrapContent: true,
                 editorHeight: 600,
                 layout: "preview",
-                editorWidthPercentage: 0
+                editorWidthPercentage: 0,
+                autoReload: true,
+                autorun: true
               }}
               customSetup={{
                 dependencies: {
-                  "react": "^18.0.0",
-                  "react-dom": "^18.0.0"
+                  "react": "^18.2.0",
+                  "react-dom": "^18.2.0"
                 }
               }}
             />
@@ -136,20 +142,20 @@ const PreviewPane = ({ code, hasGenerated = false }: PreviewPaneProps) => {
         </Card>
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-500 mb-1">TypeScript</div>
-            <div className="text-xs text-gray-500">Type Safety</div>
+            <div className="text-2xl font-bold text-purple-500 mb-1">CSS3</div>
+            <div className="text-xs text-gray-500">Modern Styling</div>
           </CardContent>
         </Card>
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-500 mb-1">Vite</div>
-            <div className="text-xs text-gray-500">Build Tool</div>
+            <div className="text-2xl font-bold text-green-500 mb-1">Sandpack</div>
+            <div className="text-xs text-gray-500">Live Preview</div>
           </CardContent>
         </Card>
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-orange-500 mb-1">AI-Gen</div>
-            <div className="text-xs text-gray-500">Auto Generated</div>
+            <div className="text-xs text-gray-500">Hybrid AI System</div>
           </CardContent>
         </Card>
       </div>

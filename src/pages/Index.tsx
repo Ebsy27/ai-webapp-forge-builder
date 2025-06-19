@@ -8,244 +8,107 @@ import Header from '../components/Header';
 import { generateWebApplication, GeneratedCode } from '../services/aiService';
 
 const Index = () => {
-  const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({
-    'src/App.tsx': `import React from 'react';
-import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Welcome to AI WebApp Builder</h1>
-        <p>Start by describing what you want to build in the chat!</p>
-        <div className="cta-section">
-          <p className="cta-text">💡 Try asking for:</p>
-          <ul className="suggestions">
-            <li>"Create a todo app"</li>
-            <li>"Build a calculator"</li>
-            <li>"Make a portfolio website"</li>
-            <li>"Design a landing page"</li>
-          </ul>
-        </div>
-      </header>
-    </div>
-  );
-}
-
-export default App;`,
-    'src/App.css': `.App {
-  text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 40px 20px;
-  color: white;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.App-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin-bottom: 20px;
-  font-weight: 600;
-  background: linear-gradient(45deg, #fff, #f0f0f0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.cta-section {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 30px;
-  margin-top: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.cta-text {
-  font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: #f0f0f0;
-}
-
-.suggestions {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.suggestions li {
-  background: rgba(255, 255, 255, 0.1);
-  margin: 8px 0;
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.suggestions li:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}`,
-    'package.json': `{
-  "name": "ai-webapp-builder",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.0.3",
-    "vite": "^4.4.5"
-  }
-}`
-  });
-
+  // Initialize with empty state instead of default welcome content
+  const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
 
   const handleCodeGeneration = async (userMessage: string, files?: FileList) => {
+    console.log('🚀 Starting code generation process...');
     setIsGenerating(true);
-    console.log('Starting AI code generation for:', userMessage);
-    console.log('Files attached:', files);
 
     try {
       const newCode = await generateWebApplication(userMessage, files);
+      console.log('✅ Code generation successful, updating state...');
+      
       setGeneratedCode(newCode);
       setHasGeneratedCode(true);
+      
+      console.log('📝 Generated files:', Object.keys(newCode));
     } catch (error) {
-      console.error('Error generating code:', error);
-      // Enhanced fallback code
-      const fallbackCode = {
-        'src/App.tsx': `import React, { useState } from 'react';
+      console.error('❌ Code generation failed:', error);
+      
+      // Create a meaningful error fallback
+      const errorFallback: GeneratedCode = {
+        'src/App.tsx': `import React from 'react';
 import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0);
-
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>Generated App: ${userMessage.slice(0, 30)}...</h1>
-        <div className="counter-section">
-          <div className="counter">
-            <button 
-              className="counter-btn" 
-              onClick={() => setCount(count - 1)}
-              aria-label="Decrease count"
-            >
-              −
-            </button>
-            <span className="count-display">{count}</span>
-            <button 
-              className="counter-btn" 
-              onClick={() => setCount(count + 1)}
-              aria-label="Increase count"
-            >
-              +
-            </button>
-          </div>
-          <p className="description">AI generation fallback - Working on API integration</p>
+      <div className="error-container">
+        <h1>⚠️ Generation Error</h1>
+        <p>There was an issue generating your application.</p>
+        <div className="error-details">
+          <p><strong>Request:</strong> "${userMessage}"</p>
+          <p><strong>Status:</strong> API connection failed</p>
+          <p><strong>Fallback:</strong> Basic template loaded</p>
         </div>
-      </header>
+        <button onClick={() => window.location.reload()} className="retry-button">
+          🔄 Try Again
+        </button>
+      </div>
     </div>
   );
 }
 
 export default App;`,
         'src/App.css': `.App {
-  text-align: center;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-  padding: 40px 20px;
-  color: white;
   min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.App-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-h1 {
-  color: #06d6a0;
-  margin-bottom: 40px;
-  font-weight: 600;
-  font-size: 2.5rem;
-  line-height: 1.2;
-}
-
-.counter-section {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(6, 214, 160, 0.2);
-  border-radius: 16px;
-  padding: 32px;
-  margin: 20px 0;
-}
-
-.counter {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  margin-bottom: 20px;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-.counter-btn {
-  background: linear-gradient(135deg, #06d6a0 0%, #059669 100%);
-  border: none;
-  color: #0f172a;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  font-size: 24px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.error-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 100%;
 }
 
-.counter-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(6, 214, 160, 0.3);
-}
-
-.count-display {
+.error-container h1 {
+  color: #d63031;
+  margin: 0 0 20px 0;
   font-size: 2rem;
-  font-weight: 700;
-  color: #06d6a0;
-  min-width: 60px;
 }
 
-.description {
-  color: #cbd5e1;
-  font-weight: 400;
-  margin: 0;
+.error-container p {
+  color: #636e72;
+  margin: 10px 0;
+}
+
+.error-details {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.retry-button {
+  background: linear-gradient(135deg, #00b894, #00a085);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
   font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.retry-button:hover {
+  transform: translateY(-2px);
 }`,
         'package.json': `{
-  "name": "ai-generated-fallback-app",
+  "name": "error-fallback-app",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -264,7 +127,7 @@ h1 {
 }`
       };
       
-      setGeneratedCode(fallbackCode);
+      setGeneratedCode(errorFallback);
       setHasGeneratedCode(true);
     } finally {
       setIsGenerating(false);

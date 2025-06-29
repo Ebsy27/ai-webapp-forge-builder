@@ -1,54 +1,61 @@
 
-import { Code2, Zap, Sparkles, Cpu, Bot } from 'lucide-react';
+import { Code2, Sparkles, Zap, Menu } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
   return (
-    <header className="bg-black/80 backdrop-blur-xl border-b border-gray-800 px-6 py-4 shadow-2xl">
-      <div className="container mx-auto flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <div className="max-w-7xl mx-auto flex h-16 items-center justify-between px-6">
         <div className="flex items-center space-x-4">
-          <div className="relative">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <Code2 className="w-7 h-7 text-white" />
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Code2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse border-2 border-black"></div>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              AI WebApp Builder
-            </h1>
-            <p className="text-sm text-gray-400 font-medium">
-              Professional AI-Powered Development Platform
-            </p>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">
+                AI WebApp Builder
+              </h1>
+              <p className="text-xs text-slate-500 font-medium">
+                Professional Development Platform
+              </p>
+            </div>
           </div>
         </div>
         
-        <div className="flex items-center space-x-6">
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2 bg-gray-800/50 px-4 py-2 rounded-xl backdrop-blur-sm border border-gray-700">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-300 font-medium">AI System Online</span>
+        <nav className="hidden md:flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-slate-600 font-medium">AI Online</span>
             </div>
             
-            <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 px-4 py-2 rounded-xl border border-blue-500/30 backdrop-blur-sm">
-              <Bot className="w-4 h-4 text-blue-400" />
-              <span className="text-xs text-blue-300 font-semibold">Hybrid AI Engine</span>
+            <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+              <Zap className="w-3 h-3 text-blue-600" />
+              <span className="text-xs text-blue-700 font-semibold">Fast Mode</span>
             </div>
 
-            <div className="flex items-center space-x-3 bg-gradient-to-r from-emerald-600/20 to-green-600/20 px-4 py-2 rounded-xl border border-emerald-500/30 backdrop-blur-sm">
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs text-emerald-300 font-semibold">Real-time Processing</span>
-            </div>
-
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-orange-600/20 to-red-600/20 px-4 py-2 rounded-xl border border-orange-500/30 backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-orange-400" />
-              <span className="text-xs text-orange-300 font-semibold">Pro Features</span>
+            <div className="flex items-center space-x-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
+              <Sparkles className="w-3 h-3 text-purple-600" />
+              <span className="text-xs text-purple-700 font-semibold">Pro</span>
             </div>
           </div>
-        </div>
+          
+          <Button variant="outline" size="sm" className="bg-white border-slate-300 hover:bg-slate-50">
+            Docs
+          </Button>
+          
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
+            Get Started
+          </Button>
+        </nav>
+
+        <Button variant="ghost" size="sm" className="md:hidden">
+          <Menu className="w-5 h-5" />
+        </Button>
       </div>
-      
-      {/* Subtle glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-pink-600/5 pointer-events-none"></div>
     </header>
   );
 };

@@ -8,7 +8,6 @@ import Header from '../components/Header';
 import { generateWebApplication, GeneratedCode } from '../services/aiService';
 
 const Index = () => {
-  // Initialize with empty state
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
@@ -135,7 +134,6 @@ root.render(<App />);`
     }
   };
 
-  // Transform GeneratedCode to the format expected by components
   const transformCodeForEditor = (code: GeneratedCode): Record<string, string> => {
     const transformed: Record<string, string> = {};
     Object.entries(code).forEach(([filepath, fileContent]) => {
@@ -147,34 +145,67 @@ root.render(<App />);`
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Header />
       
-      <div className="container mx-auto px-6 py-8">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-white border-b border-slate-200">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-indigo-50/50"></div>
+        <div className="relative max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+              Build Apps with
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"> AI</span>
+            </h1>
+            <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Transform your ideas into production-ready web applications with our advanced AI-powered platform. 
+              Simply describe what you want to build, and watch it come to life.
+            </p>
+            <div className="flex flex-wrap gap-3 justify-center mb-8">
+              <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
+                ⚡ Instant Generation
+              </div>
+              <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
+                🎨 Modern Design
+              </div>
+              <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
+                📱 Responsive
+              </div>
+              <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
+                🚀 Production Ready
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-12">
         <Tabs defaultValue="chat" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-800/50 border border-gray-700 shadow-2xl rounded-xl backdrop-blur-sm">
-            <TabsTrigger 
-              value="chat" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white text-gray-300 font-semibold transition-all duration-300 hover:text-white rounded-lg"
-            >
-              💬 AI Chat
-            </TabsTrigger>
-            <TabsTrigger 
-              value="code" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-300 font-semibold transition-all duration-300 hover:text-white rounded-lg"
-            >
-              📝 Source Code
-            </TabsTrigger>
-            <TabsTrigger 
-              value="preview" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-300 font-semibold transition-all duration-300 hover:text-white rounded-lg"
-            >
-              👁️ Live Preview
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-8">
+            <TabsList className="inline-flex h-12 items-center justify-center rounded-xl bg-white p-1 shadow-sm border border-slate-200">
+              <TabsTrigger 
+                value="chat" 
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600 hover:text-slate-900"
+              >
+                💬 Chat & Generate
+              </TabsTrigger>
+              <TabsTrigger 
+                value="code" 
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600 hover:text-slate-900"
+              >
+                📝 Source Code
+              </TabsTrigger>
+              <TabsTrigger 
+                value="preview" 
+                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600 hover:text-slate-900"
+              >
+                👁️ Live Preview
+              </TabsTrigger>
+            </TabsList>
+          </div>
           
-          <TabsContent value="chat" className="mt-8">
-            <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700 shadow-2xl">
+          <TabsContent value="chat" className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <ChatInterface 
                 onGenerateCode={handleCodeGeneration}
                 isGenerating={isGenerating}
@@ -182,27 +213,50 @@ root.render(<App />);`
             </div>
           </TabsContent>
           
-          <TabsContent value="code" className="mt-8">
-            <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700 shadow-2xl">
+          <TabsContent value="code" className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <CodeEditor code={transformCodeForEditor(generatedCode)} hasGenerated={hasGeneratedCode} />
             </div>
           </TabsContent>
           
-          <TabsContent value="preview" className="mt-8">
-            <div className="bg-gray-800/30 backdrop-blur-xl rounded-2xl border border-gray-700 shadow-2xl">
+          <TabsContent value="preview" className="space-y-6">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <PreviewPane code={generatedCode} hasGenerated={hasGeneratedCode} />
             </div>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Floating Elements */}
-      <div className="fixed top-1/4 left-10 w-2 h-32 bg-gradient-to-b from-blue-500 to-transparent opacity-20 rounded-full"></div>
-      <div className="fixed bottom-1/4 right-10 w-2 h-24 bg-gradient-to-t from-purple-500 to-transparent opacity-20 rounded-full"></div>
-      
-      {/* Animated Background Grid */}
-      <div className="fixed inset-0 pointer-events-none opacity-5">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+      {/* Features Section */}
+      <div className="bg-slate-50 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">
+            Powerful Features for Modern Development
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">AI-Powered Generation</h3>
+              <p className="text-slate-600">Advanced AI understands your requirements and generates production-ready code instantly.</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Lightning Fast</h3>
+              <p className="text-slate-600">Generate complete web applications in seconds, not hours or days.</p>
+            </div>
+            <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🎨</span>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Modern Design</h3>
+              <p className="text-slate-600">Every generated app features modern, responsive design with professional UI components.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

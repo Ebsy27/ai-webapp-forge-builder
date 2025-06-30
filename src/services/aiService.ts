@@ -268,8 +268,6 @@ function extractWebsiteName(userMessage: string): string {
 }
 
 function generateProfessionalWebsite(config: any): string {
-  // ... keep existing code (this function will be very long, so implementing smart fallback generation)
-  
   const { type, sections, theme, industry, name } = config;
   
   if (type === 'portfolio') {
@@ -285,6 +283,437 @@ function generateProfessionalWebsite(config: any): string {
   }
   
   return generateBusinessWebsite(config);
+}
+
+function generateBusinessWebsite(config: any): string {
+  return `import React, { useState, useEffect } from 'react';
+
+function App() {
+  const [activeSection, setActiveSection] = useState('home');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="business-container">
+      <nav className={\`navbar \${isScrolled ? 'scrolled' : ''}\`}>
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <h1 className="hero-title">Welcome to ${config.name}</h1>
+          <p className="hero-subtitle">Professional business solutions for modern enterprises</p>
+          <button className="btn-primary">Get Started</button>
+        </div>
+      </section>
+
+      <section className="about-section" id="about">
+        <div className="container">
+          <h2 className="section-title">About Us</h2>
+          <p>We are a professional business dedicated to providing excellent services and solutions for our clients.</p>
+        </div>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="container">
+          <h2 className="section-title">Our Services</h2>
+          <div className="services-grid">
+            <div className="service-item">
+              <h3>Consulting</h3>
+              <p>Expert business consulting services</p>
+            </div>
+            <div className="service-item">
+              <h3>Solutions</h3>
+              <p>Custom business solutions</p>
+            </div>
+            <div className="service-item">
+              <h3>Support</h3>
+              <p>24/7 customer support</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="contact-section" id="contact">
+        <div className="container">
+          <h2 className="section-title">Contact Us</h2>
+          <form className="contact-form">
+            <input type="text" placeholder="Your Name" required />
+            <input type="email" placeholder="Your Email" required />
+            <textarea placeholder="Your Message" required></textarea>
+            <button type="submit" className="btn-primary">Send Message</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateRestaurantWebsite(config: any): string {
+  return `import React, { useState } from 'react';
+
+function App() {
+  const [activeSection, setActiveSection] = useState('home');
+
+  const menuItems = [
+    { name: "Signature Pasta", price: "$18", description: "Fresh pasta with our special sauce" },
+    { name: "Grilled Salmon", price: "$24", description: "Atlantic salmon with herbs" },
+    { name: "Caesar Salad", price: "$12", description: "Classic Caesar with croutons" }
+  ];
+
+  return (
+    <div className="restaurant-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <h1 className="hero-title">Welcome to ${config.name}</h1>
+          <p className="hero-subtitle">Experience culinary excellence in every bite</p>
+          <button className="btn-primary">View Menu</button>
+        </div>
+      </section>
+
+      <section className="menu-section" id="menu">
+        <div className="container">
+          <h2 className="section-title">Our Menu</h2>
+          <div className="menu-grid">
+            {menuItems.map((item, index) => (
+              <div key={index} className="menu-item">
+                <div className="menu-item-header">
+                  <h3>{item.name}</h3>
+                  <span className="price">{item.price}</span>
+                </div>
+                <p>{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-section" id="about">
+        <div className="container">
+          <h2 className="section-title">About Us</h2>
+          <p>We are passionate about creating exceptional dining experiences with fresh ingredients and innovative recipes.</p>
+        </div>
+      </section>
+
+      <section className="contact-section" id="contact">
+        <div className="container">
+          <h2 className="section-title">Visit Us</h2>
+          <div className="contact-info">
+            <p>📍 123 Food Street, City</p>
+            <p>📞 (555) 123-4567</p>
+            <p>⏰ Open Daily 11AM-10PM</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateHealthcareWebsite(config: any): string {
+  return `import React, { useState } from 'react';
+
+function App() {
+  const [appointmentForm, setAppointmentForm] = useState({
+    name: '',
+    email: '',
+    date: '',
+    service: ''
+  });
+
+  const services = [
+    { name: "General Consultation", description: "Comprehensive health checkup" },
+    { name: "Specialist Care", description: "Expert medical specialists" },
+    { name: "Emergency Services", description: "24/7 emergency care" }
+  ];
+
+  return (
+    <div className="healthcare-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#doctors">Doctors</a></li>
+            <li><a href="#appointments">Appointments</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <h1 className="hero-title">Your Health, Our Priority</h1>
+          <p className="hero-subtitle">Comprehensive healthcare services with compassionate care</p>
+          <button className="btn-primary">Book Appointment</button>
+        </div>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="container">
+          <h2 className="section-title">Our Services</h2>
+          <div className="services-grid">
+            {services.map((service, index) => (
+              <div key={index} className="service-item">
+                <h3>{service.name}</h3>
+                <p>{service.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="appointments-section" id="appointments">
+        <div className="container">
+          <h2 className="section-title">Book an Appointment</h2>
+          <form className="appointment-form">
+            <input 
+              type="text" 
+              placeholder="Full Name" 
+              value={appointmentForm.name}
+              onChange={(e) => setAppointmentForm({...appointmentForm, name: e.target.value})}
+              required 
+            />
+            <input 
+              type="email" 
+              placeholder="Email" 
+              value={appointmentForm.email}
+              onChange={(e) => setAppointmentForm({...appointmentForm, email: e.target.value})}
+              required 
+            />
+            <input 
+              type="date" 
+              value={appointmentForm.date}
+              onChange={(e) => setAppointmentForm({...appointmentForm, date: e.target.value})}
+              required 
+            />
+            <select 
+              value={appointmentForm.service}
+              onChange={(e) => setAppointmentForm({...appointmentForm, service: e.target.value})}
+              required
+            >
+              <option value="">Select Service</option>
+              {services.map((service, index) => (
+                <option key={index} value={service.name}>{service.name}</option>
+              ))}
+            </select>
+            <button type="submit" className="btn-primary">Book Appointment</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateEcommerceWebsite(config: any): string {
+  return `import React, { useState } from 'react';
+
+function App() {
+  const [cart, setCart] = useState([]);
+  
+  const products = [
+    { id: 1, name: "Premium Product", price: 99.99, image: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop" },
+    { id: 2, name: "Best Seller", price: 79.99, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop" },
+    { id: 3, name: "New Arrival", price: 129.99, image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300&h=300&fit=crop" }
+  ];
+
+  const addToCart = (product) => {
+    setCart([...cart, product]);
+  };
+
+  return (
+    <div className="ecommerce-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#cart">Cart ({cart.length})</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <h1 className="hero-title">Shop Premium Products</h1>
+          <p className="hero-subtitle">Discover amazing products at unbeatable prices</p>
+          <button className="btn-primary">Shop Now</button>
+        </div>
+      </section>
+
+      <section className="products-section" id="products">
+        <div className="container">
+          <h2 className="section-title">Our Products</h2>
+          <div className="products-grid">
+            {products.map(product => (
+              <div key={product.id} className="product-item">
+                <img src={product.image} alt={product.name} />
+                <h3>{product.name}</h3>
+                <p className="price">\${product.price}</p>
+                <button 
+                  onClick={() => addToCart(product)}
+                  className="btn-primary"
+                >
+                  Add to Cart
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="cart-section" id="cart">
+        <div className="container">
+          <h2 className="section-title">Shopping Cart</h2>
+          {cart.length === 0 ? (
+            <p>Your cart is empty</p>
+          ) : (
+            <div className="cart-items">
+              {cart.map((item, index) => (
+                <div key={index} className="cart-item">
+                  <span>{item.name}</span>
+                  <span>\${item.price}</span>
+                </div>
+              ))}
+              <div className="cart-total">
+                <strong>Total: \${cart.reduce((sum, item) => sum + item.price, 0).toFixed(2)}</strong>
+              </div>
+              <button className="btn-primary">Checkout</button>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateLandingWebsite(config: any): string {
+  return `import React, { useState } from 'react';
+
+function App() {
+  const [email, setEmail] = useState('');
+
+  const features = [
+    { title: "Fast & Reliable", description: "Lightning-fast performance you can count on" },
+    { title: "Secure", description: "Your data is protected with enterprise-grade security" },
+    { title: "Easy to Use", description: "Intuitive interface designed for everyone" }
+  ];
+
+  const testimonials = [
+    { name: "John Doe", text: "This product changed everything for our business!" },
+    { name: "Jane Smith", text: "Amazing results in just a few weeks." },
+    { name: "Mike Johnson", text: "Highly recommend to anyone looking for quality." }
+  ];
+
+  return (
+    <div className="landing-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
+            <li><a href="#cta">Get Started</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <h1 className="hero-title">Transform Your Business Today</h1>
+          <p className="hero-subtitle">Join thousands of satisfied customers who trust our solution</p>
+          <button className="btn-primary">Start Free Trial</button>
+        </div>
+      </section>
+
+      <section className="features-section" id="features">
+        <div className="container">
+          <h2 className="section-title">Why Choose Us?</h2>
+          <div className="features-grid">
+            {features.map((feature, index) => (
+              <div key={index} className="feature-item">
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="testimonials-section" id="testimonials">
+        <div className="container">
+          <h2 className="section-title">What Our Customers Say</h2>
+          <div className="testimonials-grid">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="testimonial-item">
+                <p>"{testimonial.text}"</p>
+                <strong>- {testimonial.name}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-section" id="cta">
+        <div className="container">
+          <h2 className="section-title">Ready to Get Started?</h2>
+          <div className="cta-form">
+            <input 
+              type="email" 
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button className="btn-primary">Get Started Now</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
 }
 
 function generatePortfolioWebsite(config: any): string {
@@ -585,7 +1014,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.portfolio-container {
+.portfolio-container,
+.business-container,
+.restaurant-container,
+.healthcare-container,
+.ecommerce-container,
+.landing-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--background) 0%, var(--surface) 100%);
 }
@@ -805,236 +1239,64 @@ section {
   color: var(--text-primary);
 }
 
-/* About Section */
-.about-content {
+/* Various section styles */
+.about-content,
+.contact-content {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 4rem;
   align-items: center;
 }
 
-.about-intro {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-  line-height: 1.7;
-}
-
-.stats {
+.services-grid,
+.features-grid,
+.portfolio-grid,
+.products-grid,
+.menu-grid,
+.testimonials-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
-.stat-item {
-  text-align: center;
-  padding: 1.5rem;
+.service-item,
+.feature-item,
+.portfolio-item,
+.product-item,
+.menu-item,
+.testimonial-item {
   background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.stat-item h3 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: 0.5rem;
-}
-
-.stat-item p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.about-image img {
-  width: 100%;
-  max-width: 300px;
-  border-radius: 20px;
-  box-shadow: var(--shadow);
-}
-
-/* Portfolio Section */
-.portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-}
-
-.portfolio-item {
+  padding: 2rem;
   border-radius: 16px;
-  overflow: hidden;
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   transition: all 0.3s ease;
-  background: var(--surface);
-  border: 1px solid var(--border);
 }
 
-.portfolio-item:hover {
+.service-item:hover,
+.feature-item:hover,
+.portfolio-item:hover,
+.product-item:hover,
+.menu-item:hover,
+.testimonial-item:hover {
   transform: translateY(-10px);
   box-shadow: 0 25px 50px ${primaryColor}20;
 }
 
-.portfolio-image {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 16/10;
-}
-
-.portfolio-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.portfolio-item:hover .portfolio-image img {
-  transform: scale(1.05);
-}
-
-.portfolio-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, ${primaryColor}90, ${primaryColor}70);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  opacity: 0;
-  transition: all 0.3s ease;
-  padding: 2rem;
-}
-
-.portfolio-item:hover .portfolio-overlay {
-  opacity: 1;
-}
-
-.portfolio-overlay h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.portfolio-overlay p {
-  margin-bottom: 1rem;
-  opacity: 0.9;
-}
-
-.category {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-/* Skills Section */
-.skills-grid {
-  display: grid;
-  gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.skill-item {
-  background: var(--surface);
-  padding: 1.5rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.skill-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.skill-name {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.skill-percentage {
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.skill-bar {
-  height: 8px;
-  background: var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.skill-progress {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-color), ${primaryColor}80);
-  border-radius: 4px;
-  transition: width 2s ease;
-}
-
-/* Contact Section */
-.contact-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-}
-
-.contact-info h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
-}
-
-.contact-info p {
-  color: var(--text-secondary);
-  margin-bottom: 2rem;
-  line-height: 1.6;
-}
-
-.contact-methods {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.contact-method {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.contact-method span {
-  font-size: 1.5rem;
-}
-
-.contact-method h4 {
-  margin-bottom: 0.25rem;
-  color: var(--text-primary);
-}
-
-.contact-method p {
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.contact-form {
+/* Forms */
+.contact-form,
+.appointment-form,
+.cta-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
 .contact-form input,
-.contact-form textarea {
+.contact-form textarea,
+.appointment-form input,
+.appointment-form select,
+.cta-form input {
   padding: 1rem;
   border: 2px solid var(--border);
   border-radius: 12px;
@@ -1045,55 +1307,13 @@ section {
 }
 
 .contact-form input:focus,
-.contact-form textarea:focus {
+.contact-form textarea:focus,
+.appointment-form input:focus,
+.appointment-form select:focus,
+.cta-form input:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px ${primaryColor}20;
-}
-
-.contact-form textarea {
-  resize: vertical;
-  min-height: 120px;
-}
-
-/* Footer */
-.footer {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 2rem 0;
-  text-align: center;
-}
-
-.footer .container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer p {
-  color: var(--text-secondary);
-}
-
-.social-links {
-  display: flex;
-  gap: 1rem;
-}
-
-.social-links a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--border);
-  border-radius: 50%;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.social-links a:hover {
-  background: var(--primary-color);
-  transform: translateY(-2px);
 }
 
 /* Responsive Design */
@@ -1108,32 +1328,19 @@ section {
     text-align: center;
   }
   
-  .about-content {
+  .about-content,
+  .contact-content {
     grid-template-columns: 1fr;
     gap: 2rem;
     text-align: center;
   }
   
-  .contact-content {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-  
-  .stats {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .footer .container {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .hero-buttons {
-    justify-content: center;
-  }
-  
-  .portfolio-grid {
+  .services-grid,
+  .features-grid,
+  .portfolio-grid,
+  .products-grid,
+  .menu-grid,
+  .testimonials-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1155,10 +1362,12 @@ html {
   }
 }
 
+.service-item,
+.feature-item,
 .portfolio-item,
-.skill-item,
-.stat-item,
-.contact-method {
+.product-item,
+.menu-item,
+.testimonial-item {
   animation: fadeInUp 0.6s ease forwards;
 }`;
 }

@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from '../components/ChatInterface';
 import CodeEditor from '../components/CodeEditor';
 import PreviewPane from '../components/PreviewPane';
 import Header from '../components/Header';
-import { generateWebApplication, GeneratedCode } from '../services/aiService';
+import { generateWebsite, GeneratedCode } from '../services/aiService';
 
 const Index = () => {
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({});
@@ -17,7 +16,7 @@ const Index = () => {
     setIsGenerating(true);
 
     try {
-      const newCode = await generateWebApplication(userMessage, files);
+      const newCode = await generateWebsite(userMessage);
       console.log('✅ Code generation successful, updating state...');
       console.log('Generated files:', Object.keys(newCode));
       
@@ -27,7 +26,6 @@ const Index = () => {
     } catch (error) {
       console.error('❌ Code generation failed:', error);
       
-      // Create a meaningful error fallback with proper Sandpack structure
       const errorFallback: GeneratedCode = {
         '/src/App.js': { 
           code: `import React from 'react';

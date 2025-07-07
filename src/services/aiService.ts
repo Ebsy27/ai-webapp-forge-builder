@@ -1,5 +1,7 @@
 import type { GeneratedCode } from './types';
 
+export type { GeneratedCode } from './types';
+
 export const generateWebsite = async (userPrompt: string): Promise<GeneratedCode> => {
   console.log('🎯 Generating unique website for prompt:', userPrompt);
   

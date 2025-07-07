@@ -135,7 +135,7 @@ root.render(<App />);`
   const transformCodeForEditor = (code: GeneratedCode): Record<string, string> => {
     const transformed: Record<string, string> = {};
     Object.entries(code).forEach(([filepath, fileContent]) => {
-      if (fileContent && typeof fileContent === 'object' && 'code' in fileContent) {
+      if (fileContent && fileContent.code) {
         transformed[filepath] = fileContent.code;
       }
     });

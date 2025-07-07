@@ -1,610 +1,542 @@
-// API Configuration - updated with new key
-const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = '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';
-const LOCAL_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions';
+import type { GeneratedCode } from './types';
 
-export interface GeneratedCode {
-  [filename: string]: { code: string };
-}
+export const generateWebsite = async (userPrompt: string): Promise<GeneratedCode> => {
+  console.log('🎯 Generating unique website for prompt:', userPrompt);
+  
+  // Enhanced prompt analysis for better website generation
+  const enhancedPrompt = `
+You are a world-class AI web application generator specializing in creating unique, production-ready websites.
 
-// Enhanced system prompt for modern website generation with better JSON formatting
-const GROQ_SYSTEM_PROMPT = `You are an expert AI website builder that creates stunning, modern websites based on user ideas. You must carefully analyze user requirements and generate professional, production-ready websites.
+USER REQUEST: "${userPrompt}"
 
-CRITICAL JSON REQUIREMENTS:
-- You MUST return ONLY a valid JSON object
-- Use double quotes for all strings
-- Escape special characters properly
-- No trailing commas
-- No comments in JSON
-- No markdown formatting
+CRITICAL REQUIREMENTS:
+1. Create a COMPLETELY UNIQUE website - never use generic templates
+2. Use a modern, elegant DARK THEME with visually appealing color accents
+3. Apply stylish, readable fonts and professional layout
+4. Include ALL features specifically requested by the user
+5. Make it fully responsive and accessible
+6. Add modern UI elements: hover effects, shadows, animations
+7. Ensure all navigation is clearly visible on dark background
 
-EXACT JSON STRUCTURE REQUIRED:
-{
-  "/src/App.js": { "code": "// React component code here" },
-  "/src/index.js": { "code": "// React entry point here" },
-  "/src/App.css": { "code": "/* CSS styles here */" },
-  "/public/index.html": { "code": "<!-- HTML template here -->" },
-  "/package.json": { "code": "// package.json content here" }
-}
+ANALYSIS & IMPLEMENTATION:
+- Analyze the user's request for: website type, target audience, required features, style preferences
+- Generate unique content, sections, and functionality based on their specific needs
+- Implement advanced features as requested: forms, product listings, search, cart, reviews, etc.
+- Use appropriate color schemes, typography, and layout for the website type
+- Create engaging, interactive elements that match the brand/purpose
 
-REQUIREMENT ANALYSIS:
-- Analyze user requests for SPECIFIC applications (calculator, todo app, weather app, etc.)
-- For calculator requests: Generate a functional calculator with buttons, display, and operations
-- For business websites: Create professional landing pages
-- For portfolios: Create showcase websites
-- Match the website type to user's exact request
+OUTPUT REQUIREMENTS:
+- Provide clean, well-structured React code ready for Sandpack preview
+- Use modern CSS/Tailwind for styling with dark theme
+- Include all requested functionality and features
+- Make it production-ready and fully functional
+- No generic content - everything should be tailored to the request
 
-MODERN DESIGN STANDARDS:
-- Apply contemporary web design trends and best practices
-- Use modern CSS techniques: CSS Grid, Flexbox, smooth animations
-- Implement glassmorphism, gradient backgrounds, and subtle shadows
-- Apply modern typography with Google Fonts (Inter, Poppins, Montserrat)
-- Use sophisticated color palettes and professional spacing
-- Add micro-interactions and hover effects for enhanced UX
+Generate a complete React application with all necessary components and styling.
+`;
 
-FUNCTIONAL REQUIREMENTS:
-- For calculators: Include working arithmetic operations, display, clear functionality
-- For forms: Add proper validation and submission handling
-- For interactive apps: Implement proper state management
-- Ensure all buttons and interactions work properly
-
-Return ONLY the JSON object - no markdown, no explanations, no additional text.`;
-
-const LOCAL_LLM_SYSTEM_PROMPT = `You are a professional web development assistant that enhances websites with advanced styling and modern features. You receive a base website code and improve it with:
-
-1. Advanced CSS animations and transitions
-2. Modern design patterns and layouts
-3. Enhanced user experience elements
-4. Professional color schemes and typography
-5. Responsive design optimizations
-
-Return ONLY the enhanced JSON object with the same structure as the input.`;
-
-// Call GROQ API with enhanced website generation
-async function callGroqAPI(userMessage: string): Promise<string> {
   try {
-    console.log('🚀 Calling GROQ API for modern website generation:', userMessage);
-    
-    const response = await fetch(GROQ_API_ENDPOINT, {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY || 'gsk_your_api_key_here'}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-70b-versatile',
         messages: [
           {
             role: 'system',
-            content: GROQ_SYSTEM_PROMPT
+            content: enhancedPrompt
           },
           {
             role: 'user',
-            content: `Create a website based on this user request: "${userMessage}"
-
-IMPORTANT: Analyze the request carefully:
-- If user wants a CALCULATOR: Create a functional calculator app with number buttons, operation buttons, display screen, and working arithmetic
-- If user wants a BUSINESS SITE: Create a professional business website
-- If user wants a PORTFOLIO: Create a showcase portfolio website
-- If user wants a BLOG: Create a blog-style website
-- If user wants an E-COMMERCE: Create a shopping website
-
-Make sure the website matches EXACTLY what the user is asking for. Don't create a generic business site unless they specifically ask for a business website.
-
-Return valid JSON only - no markdown formatting, no code blocks, no explanations.`
+            content: `Generate a unique, production-ready website for: ${userPrompt}`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.8,
         max_tokens: 4000,
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('GROQ API Error:', response.status, errorText);
-      throw new Error(`GROQ API error: ${response.status}`);
+      throw new Error(`API Error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('✅ GROQ API response received successfully');
-    return data.choices[0].message.content;
+    const generatedContent = data.choices[0]?.message?.content || '';
+    
+    // Parse and structure the generated code
+    return parseGeneratedCode(generatedContent, userPrompt);
+    
   } catch (error) {
-    console.error('❌ GROQ API call failed:', error);
-    throw error;
+    console.error('❌ API generation failed, using enhanced fallback:', error);
+    return generateEnhancedFallback(userPrompt);
   }
-}
+};
 
-// Call Local LLM API for enhancement
-async function callLocalLLM(baseCode: string, userMessage: string): Promise<string> {
-  try {
-    console.log('🔧 Calling Local LLM for professional enhancement...');
-    
-    const response = await fetch(LOCAL_LLM_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'local-model',
-        messages: [
-          {
-            role: 'system',
-            content: LOCAL_LLM_SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: `Enhance this professional website for "${userMessage}" with advanced styling and features: ${baseCode}`
-          }
-        ],
-        temperature: 0.6,
-        max_tokens: 3000,
-      }),
-    });
-
-    if (!response.ok) {
-      console.log('⚠️ Local LLM not available, using GROQ result');
-      return baseCode;
-    }
-
-    const data = await response.json();
-    console.log('✅ Local LLM enhancement completed');
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.log('⚠️ Local LLM failed, using GROQ result:', error);
-    return baseCode;
-  }
-}
-
-// Enhanced JSON parsing with better error handling
-function parseCodeResponse(response: string): GeneratedCode {
-  try {
-    console.log('🔍 Parsing modern website response...');
-    console.log('Raw response length:', response.length);
-    console.log('First 200 chars:', response.substring(0, 200));
-    
-    let cleanedResponse = response.trim();
-    
-    // Remove markdown code blocks more aggressively
-    cleanedResponse = cleanedResponse.replace(/```json\s*/gi, '');
-    cleanedResponse = cleanedResponse.replace(/```javascript\s*/gi, '');
-    cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
-    cleanedResponse = cleanedResponse.replace(/^```.*$/gm, '');
-    
-    // Remove any leading/trailing text that's not JSON
-    const firstBrace = cleanedResponse.indexOf('{');
-    const lastBrace = cleanedResponse.lastIndexOf('}');
-    
-    if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error('No valid JSON object found in response');
-    }
-    
-    cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
-    
-    // Fix common JSON issues
-    cleanedResponse = cleanedResponse.replace(/'/g, '"');
-    cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}');
-    cleanedResponse = cleanedResponse.replace(/,\s*]/g, ']');
-    
-    // Fix escaped quotes in strings
-    cleanedResponse = cleanedResponse.replace(/\\"/g, '\\"');
-    
-    // Remove any invalid characters that might cause parsing issues
-    cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-    
-    console.log('Cleaned response first 200 chars:', cleanedResponse.substring(0, 200));
-    
-    const parsedCode = JSON.parse(cleanedResponse);
-    
-    // Validate required files
-    const requiredFiles = ['/src/App.js', '/src/index.js', '/src/App.css', '/public/index.html', '/package.json'];
-    const missingFiles = requiredFiles.filter(file => !parsedCode[file] || !parsedCode[file].code);
-    
-    if (missingFiles.length > 0) {
-      console.log('⚠️ Missing files, creating modern fallback');
-      throw new Error(`Missing required files: ${missingFiles.join(', ')}`);
-    }
-    
-    console.log('✅ Successfully parsed modern website');
-    return parsedCode;
-  } catch (error) {
-    console.error('❌ Error parsing response:', error);
-    console.error('Response that failed to parse:', response.substring(0, 500));
-    throw error;
-  }
-}
-
-// Create intelligent website fallback based on user requirements
-function createIntelligentFallback(userMessage: string): GeneratedCode {
-  console.log('🎨 Creating intelligent fallback website for:', userMessage);
+const parseGeneratedCode = (content: string, userPrompt: string): GeneratedCode => {
+  console.log('📝 Parsing generated content...');
   
-  // Analyze user requirements
-  let websiteConfig = analyzeRequirements(userMessage);
+  // Enhanced parsing logic for better code extraction
+  const codeBlocks = extractCodeBlocks(content);
   
-  return {
-    '/src/App.js': { code: generateModernWebsite(websiteConfig) },
-    '/src/index.js': { code: generateReactIndex() },
-    '/src/App.css': { code: generateModernCSS(websiteConfig) },
-    '/public/index.html': { code: generateModernHTML(websiteConfig) },
-    '/package.json': { code: generatePackageJson(websiteConfig.name) }
-  };
-}
-
-function analyzeRequirements(userMessage: string) {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  // Website type detection with better calculator detection
-  let type = 'business';
-  let sections = ['hero', 'about', 'contact'];
-  let theme = 'modern';
-  let industry = 'general';
-  
-  // Priority detection for specific applications
-  if (lowerMessage.includes('calculator') || lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('arithmetic')) {
-    type = 'calculator';
-    sections = ['calculator'];
-    industry = 'utility';
-  } else if (lowerMessage.includes('todo') || lowerMessage.includes('task') || lowerMessage.includes('list')) {
-    type = 'todo';
-    sections = ['todo'];
-    industry = 'productivity';
-  } else if (lowerMessage.includes('weather')) {
-    type = 'weather';
-    sections = ['weather'];
-    industry = 'utility';
-  } else if (lowerMessage.includes('portfolio')) {
-    type = 'portfolio';
-    sections = ['hero', 'about', 'gallery', 'skills', 'contact'];
-    industry = 'creative';
-  } else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food')) {
-    type = 'restaurant';
-    sections = ['hero', 'menu', 'about', 'location', 'contact'];
-    industry = 'food';
-  } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic') || lowerMessage.includes('medical')) {
-    type = 'healthcare';
-    sections = ['hero', 'services', 'doctors', 'appointments', 'contact'];
-    industry = 'healthcare';
-  } else if (lowerMessage.includes('e-commerce') || lowerMessage.includes('shop') || lowerMessage.includes('store')) {
-    type = 'ecommerce';
-    sections = ['hero', 'products', 'about', 'cart', 'contact'];
-    industry = 'retail';
-  } else if (lowerMessage.includes('landing')) {
-    type = 'landing';
-    sections = ['hero', 'features', 'testimonials', 'cta'];
-    industry = 'marketing';
+  if (codeBlocks.length === 0) {
+    console.log('⚠️ No code blocks found, generating structured fallback');
+    return generateEnhancedFallback(userPrompt);
   }
   
-  // Theme detection
-  if (lowerMessage.includes('dark')) theme = 'dark';
-  if (lowerMessage.includes('minimal')) theme = 'minimal';
-  if (lowerMessage.includes('modern')) theme = 'modern';
+  const files: GeneratedCode = {};
   
-  return {
-    type,
-    sections,
-    theme,
-    industry,
-    name: extractWebsiteName(userMessage),
-    description: userMessage
-  };
-}
-
-function extractWebsiteName(userMessage: string): string {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  if (lowerMessage.includes('calculator')) return 'Modern Calculator';
-  if (lowerMessage.includes('todo')) return 'Task Manager';
-  if (lowerMessage.includes('weather')) return 'Weather App';
-  
-  const businessMatches = userMessage.match(/for\s+([A-Za-z\s]+)(?:\s+website|\s+site|\s+page)/i);
-  if (businessMatches) return businessMatches[1].trim();
-  
-  const typeMatches = userMessage.match(/(portfolio|restaurant|clinic|shop|store|business|company)/i);
-  if (typeMatches) return `Modern ${typeMatches[1].charAt(0).toUpperCase() + typeMatches[1].slice(1)}`;
-  
-  return 'Modern Website';
-}
-
-function generateModernWebsite(config: any): string {
-  const { type } = config;
-  
-  if (type === 'calculator') {
-    return generateCalculatorWebsite(config);
-  } else if (type === 'todo') {
-    return generateTodoWebsite(config);
-  } else if (type === 'weather') {
-    return generateWeatherWebsite(config);
-  } else if (type === 'portfolio') {
-    return generatePortfolioWebsite(config);
-  } else if (type === 'restaurant') {
-    return generateRestaurantWebsite(config);
-  } else if (type === 'healthcare') {
-    return generateHealthcareWebsite(config);
-  } else if (type === 'ecommerce') {
-    return generateEcommerceWebsite(config);
-  } else if (type === 'landing') {
-    return generateLandingWebsite(config);
-  }
-  
-  return generateBusinessWebsite(config);
-}
-
-function generateCalculatorWebsite(config: any): string {
-  return `import React, { useState } from 'react';
-
-function App() {
-  const [display, setDisplay] = useState('0');
-  const [previousValue, setPreviousValue] = useState(null);
-  const [operation, setOperation] = useState(null);
-  const [waitingForNewValue, setWaitingForNewValue] = useState(false);
-
-  const inputNumber = (num) => {
-    if (waitingForNewValue) {
-      setDisplay(String(num));
-      setWaitingForNewValue(false);
-    } else {
-      setDisplay(display === '0' ? String(num) : display + num);
+  // Process each code block and assign to appropriate files
+  codeBlocks.forEach((block, index) => {
+    const { language, code, filename } = block;
+    
+    if (language === 'jsx' || language === 'tsx' || language === 'javascript') {
+      if (filename) {
+        files[filename] = { code };
+      } else if (index === 0) {
+        files['/src/App.js'] = { code };
+      } else {
+        files[`/src/Component${index}.js`] = { code };
+      }
+    } else if (language === 'css') {
+      files['/src/App.css'] = { code };
+    } else if (language === 'html') {
+      files['/public/index.html'] = { code };
     }
-  };
-
-  const inputOperation = (nextOperation) => {
-    const inputValue = parseFloat(display);
-
-    if (previousValue === null) {
-      setPreviousValue(inputValue);
-    } else if (operation) {
-      const currentValue = previousValue || 0;
-      const newValue = calculate(currentValue, inputValue, operation);
-
-      setDisplay(String(newValue));
-      setPreviousValue(newValue);
-    }
-
-    setWaitingForNewValue(true);
-    setOperation(nextOperation);
-  };
-
-  const calculate = (firstValue, secondValue, operation) => {
-    switch (operation) {
-      case '+':
-        return firstValue + secondValue;
-      case '-':
-        return firstValue - secondValue;
-      case '×':
-        return firstValue * secondValue;
-      case '÷':
-        return firstValue / secondValue;
-      case '=':
-        return secondValue;
-      default:
-        return secondValue;
-    }
-  };
-
-  const performCalculation = () => {
-    const inputValue = parseFloat(display);
-
-    if (previousValue !== null && operation) {
-      const newValue = calculate(previousValue, inputValue, operation);
-      setDisplay(String(newValue));
-      setPreviousValue(null);
-      setOperation(null);
-      setWaitingForNewValue(true);
-    }
-  };
-
-  const clearDisplay = () => {
-    setDisplay('0');
-    setPreviousValue(null);
-    setOperation(null);
-    setWaitingForNewValue(false);
-  };
-
-  return (
-    <div className="calculator-container">
-      <div className="calculator">
-        <div className="calculator-header">
-          <h1>Modern Calculator</h1>
-        </div>
-        
-        <div className="calculator-display">
-          <div className="display-screen">{display}</div>
-        </div>
-        
-        <div className="calculator-buttons">
-          <button className="btn btn-clear" onClick={clearDisplay}>
-            AC
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('÷')}>
-            ÷
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('×')}>
-            ×
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('-')}>
-            -
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(7)}>
-            7
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(8)}>
-            8
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(9)}>
-            9
-          </button>
-          <button className="btn btn-operation btn-plus" onClick={() => inputOperation('+')}>
-            +
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(4)}>
-            4
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(5)}>
-            5
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(6)}>
-            6
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(1)}>
-            1
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(2)}>
-            2
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(3)}>
-            3
-          </button>
-          <button className="btn btn-equals" onClick={performCalculation}>
-            =
-          </button>
-          
-          <button className="btn btn-number btn-zero" onClick={() => inputNumber(0)}>
-            0
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber('.')}>
-            .
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateTodoWebsite(config: any): string {
-  return `import React, { useState } from 'react';
-
-function App() {
-  const [todos, setTodos] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-
-  const addTodo = () => {
-    if (inputValue.trim()) {
-      setTodos([...todos, { id: Date.now(), text: inputValue, completed: false }]);
-      setInputValue('');
-    }
-  };
-
-  const toggleTodo = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
-
-  const deleteTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  return (
-    <div className="todo-container">
-      <div className="todo-app">
-        <h1>Task Manager</h1>
-        <div className="todo-input">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Add a new task..."
-            onKeyPress={(e) => e.key === 'Enter' && addTodo()}
-          />
-          <button onClick={addTodo}>Add</button>
-        </div>
-        <div className="todo-list">
-          {todos.map(todo => (
-            <div key={todo.id} className={\`todo-item \${todo.completed ? 'completed' : ''}\`}>
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-              />
-              <span>{todo.text}</span>
-              <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateWeatherWebsite(config: any): string {
-  return `import React, { useState } from 'react';
-
-function App() {
-  const [weather, setWeather] = useState({
-    city: 'New York',
-    temperature: 22,
-    condition: 'Sunny',
-    humidity: 60,
-    windSpeed: 15
   });
-
-  return (
-    <div className="weather-container">
-      <div className="weather-app">
-        <h1>Weather App</h1>
-        <div className="weather-card">
-          <div className="weather-main">
-            <h2>{weather.city}</h2>
-            <div className="temperature">{weather.temperature}°C</div>
-            <div className="condition">{weather.condition}</div>
-          </div>
-          <div className="weather-details">
-            <div className="detail-item">
-              <span>Humidity</span>
-              <span>{weather.humidity}%</span>
-            </div>
-            <div className="detail-item">
-              <span>Wind Speed</span>
-              <span>{weather.windSpeed} km/h</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateReactIndex(): string {
-  return `import React from 'react';
+  
+  // Ensure required files exist
+  if (!files['/src/App.js']) {
+    files['/src/App.js'] = { code: generateMainComponent(userPrompt) };
+  }
+  
+  if (!files['/src/index.js']) {
+    files['/src/index.js'] = { 
+      code: `import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './App.css';
 import App from './App';
+import './App.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);`;
-}
-
-function generateModernCSS(config: any): string {
-  const { type } = config;
-  
-  if (type === 'calculator') {
-    return generateCalculatorCSS();
-  } else if (type === 'todo') {
-    return generateTodoCSS();
-  } else if (type === 'weather') {
-    return generateWeatherCSS();
+root.render(<App />);` 
+    };
   }
   
-  return generateBusinessCSS(config);
+  if (!files['/src/App.css']) {
+    files['/src/App.css'] = { code: generateModernCSS(userPrompt) };
+  }
+  
+  if (!files['/public/index.html']) {
+    files['/public/index.html'] = { code: generateHTML(userPrompt) };
+  }
+  
+  return files;
+};
+
+const extractCodeBlocks = (content: string) => {
+  const codeBlockRegex = /```(\w+)?\s*(?:\/\*\s*(.+?)\s*\*\/)?\s*\n([\s\S]*?)```/g;
+  const blocks = [];
+  let match;
+  
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    blocks.push({
+      language: match[1] || 'javascript',
+      filename: match[2] || null,
+      code: match[3].trim()
+    });
+  }
+  
+  return blocks;
+};
+
+const generateEnhancedFallback = (userPrompt: string): GeneratedCode => {
+  console.log('🔧 Generating enhanced fallback for:', userPrompt);
+  
+  // Analyze user prompt for website type and features
+  const websiteType = detectWebsiteType(userPrompt);
+  const features = extractFeatures(userPrompt);
+  
+  return {
+    '/src/App.js': { code: generateMainComponent(userPrompt, websiteType, features) },
+    '/src/index.js': { 
+      code: `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './App.css';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);` 
+    },
+    '/src/App.css': { code: generateModernCSS(userPrompt, websiteType) },
+    '/public/index.html': { code: generateHTML(userPrompt, websiteType) },
+    '/package.json': { 
+      code: `{
+  "name": "${websiteType.toLowerCase().replace(/\s+/g, '-')}-website",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}` 
+    }
+  };
+};
+
+const detectWebsiteType = (prompt: string): string => {
+  const types = {
+    'e-commerce': ['ecommerce', 'e-commerce', 'shop', 'store', 'product', 'sneaker', 'clothing', 'buy', 'sell', 'cart'],
+    'portfolio': ['portfolio', 'showcase', 'gallery', 'artist', 'designer', 'photographer', 'creative'],
+    'business': ['business', 'company', 'corporate', 'professional', 'service', 'consulting'],
+    'healthcare': ['healthcare', 'medical', 'clinic', 'doctor', 'hospital', 'health'],
+    'restaurant': ['restaurant', 'food', 'cafe', 'dining', 'menu', 'kitchen'],
+    'blog': ['blog', 'news', 'article', 'content', 'writing'],
+    'landing': ['landing', 'startup', 'launch', 'marketing', 'conversion'],
+    'education': ['education', 'learning', 'course', 'school', 'university', 'tutorial']
+  };
+  
+  const lowerPrompt = prompt.toLowerCase();
+  
+  for (const [type, keywords] of Object.entries(types)) {
+    if (keywords.some(keyword => lowerPrompt.includes(keyword))) {
+      return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  }
+  
+  return 'Modern Website';
+};
+
+const extractFeatures = (prompt: string): string[] => {
+  const features = [];
+  const lowerPrompt = prompt.toLowerCase();
+  
+  if (lowerPrompt.includes('cart') || lowerPrompt.includes('shopping')) features.push('shopping-cart');
+  if (lowerPrompt.includes('search') || lowerPrompt.includes('filter')) features.push('search-filter');
+  if (lowerPrompt.includes('review') || lowerPrompt.includes('rating')) features.push('reviews');
+  if (lowerPrompt.includes('contact') || lowerPrompt.includes('form')) features.push('contact-form');
+  if (lowerPrompt.includes('gallery') || lowerPrompt.includes('image')) features.push('gallery');
+  if (lowerPrompt.includes('login') || lowerPrompt.includes('auth')) features.push('authentication');
+  if (lowerPrompt.includes('booking') || lowerPrompt.includes('appointment')) features.push('booking');
+  if (lowerPrompt.includes('testimonial')) features.push('testimonials');
+  if (lowerPrompt.includes('blog') || lowerPrompt.includes('news')) features.push('blog');
+  
+  return features;
+};
+
+const generateMainComponent = (prompt: string, websiteType = 'Modern Website', features = []): string => {
+  const isEcommerce = websiteType.toLowerCase().includes('commerce') || features.includes('shopping-cart');
+  const hasSearch = features.includes('search-filter');
+  const hasReviews = features.includes('reviews');
+  const hasGallery = features.includes('gallery');
+  
+  if (isEcommerce) {
+    return `import React, { useState } from 'react';
+
+function App() {
+  const [cart, setCart] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+
+  const products = [
+    { id: 1, name: 'Nike Air Max 270', price: 150, category: 'nike', image: '🏃‍♂️', rating: 4.8, reviews: 124 },
+    { id: 2, name: 'Adidas Ultra Boost', price: 180, category: 'adidas', image: '👟', rating: 4.9, reviews: 89 },
+    { id: 3, name: 'Jordan 1 Retro', price: 170, category: 'jordan', image: '🏀', rating: 4.7, reviews: 156 },
+    { id: 4, name: 'Converse Chuck Taylor', price: 65, category: 'converse', image: '👟', rating: 4.5, reviews: 203 },
+    { id: 5, name: 'Vans Old Skool', price: 60, category: 'vans', image: '🛹', rating: 4.6, reviews: 178 },
+    { id: 6, name: 'Puma RS-X', price: 110, category: 'puma', image: '⚡', rating: 4.4, reviews: 92 }
+  ];
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const addToCart = (product) => {
+    setCart([...cart, product]);
+  };
+
+  const removeFromCart = (productId) => {
+    setCart(cart.filter(item => item.id !== productId));
+  };
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price, 0);
+  };
+
+  return (
+    <div className="app">
+      {/* Header */}
+      <header className="header">
+        <div className="container">
+          <h1 className="logo">SneakerStore</h1>
+          <nav className="nav">
+            <a href="#home">Home</a>
+            <a href="#products">Products</a>
+            <a href="#about">About</a>
+            <a href="#contact">Contact</a>
+          </nav>
+          <div className="cart-icon">
+            🛒 <span className="cart-count">{cart.length}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-content">
+          <h2 className="hero-title">Step Into Style</h2>
+          <p className="hero-subtitle">Discover the latest collection of premium sneakers</p>
+          <button className="cta-button">Shop Now</button>
+        </div>
+      </section>
+
+      {/* Search & Filter */}
+      <section className="filters">
+        <div className="container">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search sneakers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="category-filters">
+            <button 
+              className={\`filter-btn \${selectedCategory === 'all' ? 'active' : ''}\`}
+              onClick={() => setSelectedCategory('all')}
+            >
+              All
+            </button>
+            <button 
+              className={\`filter-btn \${selectedCategory === 'nike' ? 'active' : ''}\`}
+              onClick={() => setSelectedCategory('nike')}
+            >
+              Nike
+            </button>
+            <button 
+              className={\`filter-btn \${selectedCategory === 'adidas' ? 'active' : ''}\`}
+              onClick={() => setSelectedCategory('adidas')}
+            >
+              Adidas
+            </button>
+            <button 
+              className={\`filter-btn \${selectedCategory === 'jordan' ? 'active' : ''}\`}
+              onClick={() => setSelectedCategory('jordan')}
+            >
+              Jordan
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Products Grid */}
+      <section className="products">
+        <div className="container">
+          <h2 className="section-title">Featured Products</h2>
+          <div className="products-grid">
+            {filteredProducts.map(product => (
+              <div key={product.id} className="product-card">
+                <div className="product-image">{product.image}</div>
+                <div className="product-info">
+                  <h3 className="product-name">{product.name}</h3>
+                  <div className="product-rating">
+                    ⭐ {product.rating} ({product.reviews} reviews)
+                  </div>
+                  <div className="product-price">\${product.price}</div>
+                  <button 
+                    className="add-to-cart-btn"
+                    onClick={() => addToCart(product)}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Cart Summary */}
+      {cart.length > 0 && (
+        <section className="cart-summary">
+          <div className="container">
+            <h3>Shopping Cart ({cart.length} items)</h3>
+            <div className="cart-items">
+              {cart.map((item, index) => (
+                <div key={index} className="cart-item">
+                  <span>{item.name}</span>
+                  <span>\${item.price}</span>
+                  <button onClick={() => removeFromCart(item.id)}>Remove</button>
+                </div>
+              ))}
+            </div>
+            <div className="cart-total">
+              Total: \${getTotalPrice()}
+            </div>
+            <button className="checkout-btn">Proceed to Checkout</button>
+          </div>
+        </section>
+      )}
+
+      {/* Reviews Section */}
+      <section className="reviews">
+        <div className="container">
+          <h2 className="section-title">Customer Reviews</h2>
+          <div className="reviews-grid">
+            <div className="review-card">
+              <div className="review-rating">⭐⭐⭐⭐⭐</div>
+              <p>"Amazing quality and fast delivery! Love my new sneakers."</p>
+              <div className="review-author">- Sarah M.</div>
+            </div>
+            <div className="review-card">
+              <div className="review-rating">⭐⭐⭐⭐⭐</div>
+              <p>"Best sneaker store online. Great customer service!"</p>
+              <div className="review-author">- Mike R.</div>
+            </div>
+            <div className="review-card">
+              <div className="review-rating">⭐⭐⭐⭐⭐</div>
+              <p>"Perfect fit and stylish designs. Highly recommended!"</p>
+              <div className="review-author">- Emma L.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-section">
+              <h4>About SneakerStore</h4>
+              <p>Your premier destination for authentic sneakers and streetwear.</p>
+            </div>
+            <div className="footer-section">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#products">Products</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+              </ul>
+            </div>
+            <div className="footer-section">
+              <h4>Contact Info</h4>
+              <p>📧 info@sneakerstore.com</p>
+              <p>📞 (555) 123-4567</p>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>&copy; 2024 SneakerStore. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
-function generateCalculatorCSS(): string {
-  return `/* Modern Calculator Styles */
+export default App;`;
+  }
+  
+  // Generate other website types based on prompt analysis
+  return generateCustomWebsite(prompt, websiteType, features);
+};
+
+const generateCustomWebsite = (prompt: string, websiteType: string, features: string[]): string => {
+  // This would generate different website types based on the analysis
+  return `import React, { useState } from 'react';
+
+function App() {
+  const [activeSection, setActiveSection] = useState('home');
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="container">
+          <h1 className="logo">${websiteType}</h1>
+          <nav className="nav">
+            <a href="#home" onClick={() => setActiveSection('home')}>Home</a>
+            <a href="#about" onClick={() => setActiveSection('about')}>About</a>
+            <a href="#services" onClick={() => setActiveSection('services')}>Services</a>
+            <a href="#contact" onClick={() => setActiveSection('contact')}>Contact</a>
+          </nav>
+        </div>
+      </header>
+
+      <main className="main">
+        {activeSection === 'home' && (
+          <section className="hero">
+            <div className="hero-content">
+              <h2 className="hero-title">Welcome to ${websiteType}</h2>
+              <p className="hero-subtitle">Professional, modern, and tailored to your needs</p>
+              <button className="cta-button">Get Started</button>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'about' && (
+          <section className="about">
+            <div className="container">
+              <h2 className="section-title">About Us</h2>
+              <p>We are dedicated to providing exceptional service and solutions.</p>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'services' && (
+          <section className="services">
+            <div className="container">
+              <h2 className="section-title">Our Services</h2>
+              <div className="services-grid">
+                <div className="service-card">
+                  <h3>Premium Service</h3>
+                  <p>High-quality solutions tailored to your needs.</p>
+                </div>
+                <div className="service-card">
+                  <h3>Expert Support</h3>
+                  <p>Professional assistance when you need it most.</p>
+                </div>
+                <div className="service-card">
+                  <h3>Custom Solutions</h3>
+                  <p>Personalized approaches for unique requirements.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeSection === 'contact' && (
+          <section className="contact">
+            <div className="container">
+              <h2 className="section-title">Contact Us</h2>
+              <div className="contact-form">
+                <input type="text" placeholder="Your Name" />
+                <input type="email" placeholder="Your Email" />
+                <textarea placeholder="Your Message"></textarea>
+                <button type="submit">Send Message</button>
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      <footer className="footer">
+        <div className="container">
+          <p>&copy; 2024 ${websiteType}. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default App;`;
+};
+
+const generateModernCSS = (prompt: string, websiteType = 'Modern Website'): string => {
+  return `/* Modern Dark Theme Styling */
 * {
   margin: 0;
   padding: 0;
@@ -612,621 +544,550 @@ function generateCalculatorCSS(): string {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.calculator-container {
-  padding: 20px;
-}
-
-.calculator {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.calculator-header h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.calculator-display {
-  background: #1a1a1a;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-}
-
-.display-screen {
-  color: white;
-  font-size: 2.5rem;
-  font-weight: 300;
-  text-align: right;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  word-break: break-all;
-}
-
-.calculator-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.btn {
-  border: none;
-  border-radius: 15px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-number {
-  background: #f8f9fa;
-  color: #333;
-}
-
-.btn-number:hover {
-  background: #e9ecef;
-}
-
-.btn-operation {
-  background: #667eea;
-  color: white;
-}
-
-.btn-operation:hover {
-  background: #5a6fd8;
-}
-
-.btn-clear {
-  background: #ff6b6b;
-  color: white;
-}
-
-.btn-clear:hover {
-  background: #ff5252;
-}
-
-.btn-equals {
-  background: #51cf66;
-  color: white;
-  grid-row: span 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-equals:hover {
-  background: #40c057;
-}
-
-.btn-zero {
-  grid-column: span 2;
-}
-
-.btn-plus {
-  grid-row: span 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (max-width: 480px) {
-  .calculator {
-    margin: 20px;
-    padding: 20px;
-  }
-  
-  .btn {
-    padding: 15px;
-    font-size: 1.2rem;
-  }
-  
-  .display-screen {
-    font-size: 2rem;
-  }
-}`;
-}
-
-function generateTodoCSS(): string {
-  return `/* Modern Todo App Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  padding: 20px;
-}
-
-.todo-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding-top: 50px;
-}
-
-.todo-app {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.todo-app h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.todo-input {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.todo-input input {
-  flex: 1;
-  padding: 15px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 15px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.todo-input input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.todo-input button {
-  background: #667eea;
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 15px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.todo-input button:hover {
-  background: #5a6fd8;
-  transform: translateY(-2px);
-}
-
-.todo-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px 20px;
-  background: #f8f9fa;
-  border-radius: 15px;
-  margin-bottom: 10px;
-  transition: all 0.3s ease;
-}
-
-.todo-item:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.todo-item.completed {
-  opacity: 0.6;
-}
-
-.todo-item.completed span {
-  text-decoration: line-through;
-}
-
-.todo-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.todo-item span {
-  flex: 1;
-  font-size: 1.1rem;
-  color: #333;
-}
-
-.todo-item button {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.todo-item button:hover {
-  background: #ff5252;
-}`;
-}
-
-function generateWeatherCSS(): string {
-  return `/* Modern Weather App Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.weather-container {
-  padding: 20px;
-}
-
-.weather-app {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.weather-app h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.weather-card {
-  text-align: center;
-}
-
-.weather-main h2 {
-  color: #333;
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-}
-
-.temperature {
-  font-size: 4rem;
-  font-weight: 300;
-  color: #0984e3;
-  margin-bottom: 10px;
-}
-
-.condition {
-  font-size: 1.5rem;
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.weather-details {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.detail-item span:first-child {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.detail-item span:last-child {
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 600;
-}`;
-}
-
-function generateBusinessCSS(config: any): string {
-  return `/* Modern CSS for ${config.name} */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  color: #e2e8f0;
   line-height: 1.6;
-  color: #333;
-  background: #fff;
-}
-
-/* Modern Container */
-.modern-container, .restaurant-container, .healthcare-container, .ecommerce-container, .landing-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-/* Navigation */
-.navbar {
-  position: fixed;
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+.header {
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  transition: all 0.3s ease;
+  z-index: 100;
 }
 
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-.nav-container {
+.container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0 20px;
+}
+
+.header .container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 20px;
 }
 
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.nav-menu {
+.nav {
   display: flex;
-  list-style: none;
   gap: 2rem;
 }
 
-.nav-link {
+.nav a {
+  color: #cbd5e1;
   text-decoration: none;
-  color: #333;
   font-weight: 500;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.nav-link:hover {
+.nav a:hover {
   color: #667eea;
+  transform: translateY(-2px);
+}
+
+.nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.3s ease;
+}
+
+.nav a:hover::after {
+  width: 100%;
+}
+
+/* Cart Icon */
+.cart-icon {
+  position: relative;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.cart-icon:hover {
+  transform: scale(1.1);
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 /* Hero Section */
-.hero-section {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
+.hero {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  padding: 6rem 0;
+  text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.hero-background {
+.hero::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: -1;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
 }
 
 .hero-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.hero-text {
-  color: white;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-title {
-  font-size: 3.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 1.5rem;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-subtitle {
-  font-size: 1.25rem;
-  opacity: 0.9;
+  font-size: 1.2rem;
+  color: #94a3b8;
   margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.hero-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 3rem;
-}
-
-.btn-primary {
-  background: #fff;
-  color: #667eea;
+.cta-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 50px;
+  font-size: 1.1rem;
   font-weight: 600;
+  border-radius: 50px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+}
+
+/* Filters Section */
+.filters {
+  background: rgba(15, 15, 35, 0.8);
+  padding: 2rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.filters .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.search-bar input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 25px;
+  padding: 0.8rem 1.5rem;
+  color: #e2e8f0;
+  font-size: 1rem;
+  width: 300px;
   transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+.search-bar input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
 }
 
-.btn-secondary {
-  background: transparent;
+.search-bar input::placeholder {
+  color: #94a3b8;
+}
+
+.category-filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.filter-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
   color: white;
-  border: 2px solid white;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  transform: translateY(-2px);
 }
 
-.btn-secondary:hover {
-  background: white;
-  color: #667eea;
-}
-
-/* Sections */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 4rem;
+/* Products Section */
+.products {
+  padding: 4rem 0;
+  flex: 1;
 }
 
 .section-title {
+  text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.section-subtitle {
-  font-size: 1.25rem;
-  color: #666;
-}
-
-/* Grid Layouts */
-.services-grid, .features-grid, .products-grid {
+.products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-  margin-top: 4rem;
+  margin-top: 2rem;
 }
 
-/* Cards */
-.service-card, .feature-card, .product-card {
-  background: white;
-  padding: 2rem;
+.product-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  padding: 1.5rem;
   text-align: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(20px);
 }
 
-.service-card:hover, .feature-card:hover, .product-card:hover {
+.product-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(102, 126, 234, 0.3);
 }
 
-.service-icon, .feature-icon {
-  font-size: 3rem;
+.product-image {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+}
+
+.product-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+}
+
+.product-rating {
+  color: #fbbf24;
+  font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
-/* Forms */
-.contact-form, .appointment-form {
-  background: white;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+.product-price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 1rem;
 }
 
-.form-row {
+.add-to-cart-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.add-to-cart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+}
+
+/* Cart Summary */
+.cart-summary {
+  background: rgba(15, 15, 35, 0.9);
+  padding: 2rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cart-items {
+  margin: 1rem 0;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cart-total {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #667eea;
+  margin: 1rem 0;
+}
+
+.checkout-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.checkout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Reviews Section */
+.reviews {
+  background: rgba(15, 15, 35, 0.5);
+  padding: 4rem 0;
+}
+
+.reviews-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.review-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+
+.review-rating {
+  font-size: 1.2rem;
   margin-bottom: 1rem;
 }
 
-.form-input, .form-textarea {
-  padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
+.review-author {
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 1rem;
 }
 
-.form-input:focus, .form-textarea:focus {
+/* Services Grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.service-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.service-card h3 {
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+/* Contact Form */
+.contact-form {
+  max-width: 600px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  color: #e2e8f0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
   outline: none;
   border-color: #667eea;
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.contact-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.contact-form button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.contact-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Footer */
+.footer {
+  background: rgba(15, 15, 35, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem 0 1rem;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section h4 {
+  color: #667eea;
+  margin-bottom: 1rem;
+}
+
+.footer-section ul {
+  list-style: none;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: #667eea;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .hero-content {
-    grid-template-columns: 1fr;
-    text-align: center;
+  .header .container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .nav {
+    gap: 1rem;
+  }
+  
+  .filters .container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .search-bar input {
+    width: 100%;
+  }
+  
+  .category-filters {
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
   
-  .form-row {
+  .products-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .nav-menu {
-    gap: 1rem;
   }
 }
 
@@ -1242,383 +1103,107 @@ body {
   }
 }
 
-.hero-text, .service-card, .feature-card {
-  animation: fadeInUp 0.6s ease forwards;
-}`;
+.product-card,
+.service-card,
+.review-card {
+  animation: fadeInUp 0.6s ease-out forwards;
 }
 
-function generateModernHTML(config: any): string {
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 15, 35, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6b4e8a 100%);
+}`;
+};
+
+const generateHTML = (prompt: string, websiteType = 'Modern Website'): string => {
   return `<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${config.name}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f0f23" />
+    <meta name="description" content="${websiteType} - Modern, responsive web application" />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <title>${websiteType}</title>
+    
+    <style>
+      /* Loading animation */
+      .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+      }
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loaded .loading-container {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    
+    <!-- Loading Screen -->
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+    </div>
+    
     <div id="root"></div>
-</body>
+    
+    <script>
+      // Hide loading screen when app loads
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.body.classList.add('loaded');
+        }, 500);
+      });
+    </script>
+  </body>
 </html>`;
-}
-
-function generatePackageJson(siteName: string): string {
-  return `{
-  "name": "${siteName.toLowerCase().replace(/\s+/g, '-')}",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
-}`;
-}
-
-// Create intelligent website fallback based on user requirements
-function generateBusinessWebsite(config: any): string {
-  return `import React, { useState, useEffect } from 'react';
-
-function App() {
-  const [activeSection, setActiveSection] = useState('home');
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className="modern-container">
-      <nav className={\`navbar \${isScrolled ? 'scrolled' : ''}\`}>
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#services" className="nav-link">Services</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Transform Your Business with ${config.name}</h1>
-            <p className="hero-subtitle">Experience excellence in modern business solutions designed for today's digital world</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Get Started</button>
-              <button className="btn-secondary">Learn More</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="about-section" id="about">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">About Our Company</h2>
-            <p className="section-subtitle">Building the future, one solution at a time</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="services-section" id="services">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Our Services</h2>
-            <p className="section-subtitle">Comprehensive solutions for modern businesses</p>
-          </div>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">💼</div>
-              <h3>Business Consulting</h3>
-              <p>Strategic guidance to accelerate your business growth</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">⚡</div>
-              <h3>Digital Solutions</h3>
-              <p>Custom technology solutions for your business needs</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🎯</div>
-              <h3>Marketing Services</h3>
-              <p>Data-driven marketing strategies to expand your reach</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="contact-section" id="contact">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Get In Touch</h2>
-            <p className="section-subtitle">Let's discuss your project</p>
-          </div>
-          <form className="contact-form">
-            <div className="form-row">
-              <input type="text" placeholder="Your Name" className="form-input" required />
-              <input type="email" placeholder="Your Email" className="form-input" required />
-            </div>
-            <textarea placeholder="Your Message" className="form-textarea" rows="5" required></textarea>
-            <button type="submit" className="btn-primary">Send Message</button>
-          </form>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generatePortfolioWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="modern-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#portfolio" className="nav-link">Portfolio</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Creative Portfolio</h1>
-            <p className="hero-subtitle">Showcasing innovative designs and creative solutions</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">View Work</button>
-              <button className="btn-secondary">Contact Me</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="about-section" id="about">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">About Me</h2>
-            <p className="section-subtitle">Creative professional with passion for design</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateRestaurantWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="restaurant-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#menu" className="nav-link">Menu</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Welcome to ${config.name}</h1>
-            <p className="hero-subtitle">An unforgettable culinary experience awaits</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">View Menu</button>
-              <button className="btn-secondary">Book Table</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateHealthcareWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="healthcare-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#services" className="nav-link">Services</a></li>
-            <li><a href="#doctors" className="nav-link">Doctors</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Your Health, Our Priority</h1>
-            <p className="hero-subtitle">Comprehensive healthcare with compassion</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Book Appointment</button>
-              <button className="btn-secondary">Our Services</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateEcommerceWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="ecommerce-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#products" className="nav-link">Products</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Shop Premium Products</h1>
-            <p className="hero-subtitle">Discover quality products at unbeatable prices</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Shop Now</button>
-              <button className="btn-secondary">View Collections</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateLandingWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="landing-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#features" className="nav-link">Features</a></li>
-            <li><a href="#pricing" className="nav-link">Pricing</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Transform Your Business</h1>
-            <p className="hero-subtitle">The ultimate solution for modern businesses</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Get Started</button>
-              <button className="btn-secondary">Learn More</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-// Main API function
-export async function generateWebsite(userMessage: string): Promise<GeneratedCode> {
-  try {
-    console.log('🌟 Starting modern website generation process...');
-    
-    // Try GROQ API first
-    const groqResponse = await callGroqAPI(userMessage);
-    
-    try {
-      // Parse the response
-      const parsedCode = parseCodeResponse(groqResponse);
-      console.log('✅ Successfully generated modern website via GROQ');
-      return parsedCode;
-    } catch (parseError) {
-      console.log('⚠️ GROQ response parsing failed, creating intelligent fallback');
-      return createIntelligentFallback(userMessage);
-    }
-  } catch (error) {
-    console.error('❌ GROQ API failed, creating intelligent fallback:', error);
-    return createIntelligentFallback(userMessage);
-  }
-}
+};

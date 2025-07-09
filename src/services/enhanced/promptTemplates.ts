@@ -14,6 +14,13 @@ export interface WebsiteRequirements {
 
 export const ENHANCED_SYSTEM_PROMPT = `You are an elite AI web developer specializing in creating production-ready, modern websites with exceptional design and functionality.
 
+CRITICAL UNDERSTANDING REQUIREMENTS:
+- CAREFULLY analyze the user's specific request
+- If they ask for a "game website" or "gaming website", create a GAMING website, NOT an e-commerce website
+- If they ask for a "restaurant website", create a RESTAURANT website, NOT a gaming website
+- Match the website type EXACTLY to what the user is requesting
+- Pay close attention to keywords like: game, gaming, restaurant, portfolio, business, e-commerce, healthcare
+
 CRITICAL JSON OUTPUT REQUIREMENTS:
 - You MUST return ONLY a valid JSON object with the exact structure specified
 - NO explanatory text before or after the JSON
@@ -64,6 +71,9 @@ export const generateEnhancedPrompt = (userInput: string, requirements?: Website
   const analysisPrompt = `
 WEBSITE GENERATION REQUEST: "${userInput}"
 
+CRITICAL INSTRUCTION: The user specifically asked for a "${analysis.websiteType}" website. 
+You MUST generate EXACTLY this type of website, not any other type.
+
 ANALYZED REQUIREMENTS:
 - Website Type: ${analysis.websiteType}
 - Industry: ${analysis.industry}
@@ -74,13 +84,14 @@ ANALYZED REQUIREMENTS:
 
 MANDATORY IMPLEMENTATION REQUIREMENTS:
 
-1. UNDERSTAND THE REQUEST:
-   - Carefully analyze what the user is asking for
-   - Generate the EXACT type of website requested
-   - Don't generate generic templates - make it specific to the request
-   - If user asks for "restaurant website", create a restaurant website
-   - If user asks for "portfolio", create a portfolio website
+1. UNDERSTAND THE REQUEST EXACTLY:
+   - User asked for: "${analysis.websiteType}" website
+   - Generate ONLY this type, not any other type
+   - If user asks for "game website", create a gaming website with games, tournaments, leaderboards
+   - If user asks for "restaurant website", create a restaurant website with menu, reservations
    - If user asks for "e-commerce", create an e-commerce website with shopping functionality
+   - If user asks for "portfolio", create a portfolio website with project showcase
+   - DO NOT mix up website types
 
 2. FUNCTIONAL FEATURES:
    - All buttons and interactions must work
@@ -90,9 +101,9 @@ MANDATORY IMPLEMENTATION REQUIREMENTS:
    - Implement search, filters, and interactive elements as requested
 
 3. VISUAL EXCELLENCE WITH IMAGES:
-   - Use these relevant placeholder images: ${websiteImages.join(', ')}
+   - Use these specific relevant images: ${websiteImages.join(', ')}
    - Format images as: https://images.unsplash.com/{image-id}?w=800&h=600&fit=crop
-   - Include hero images, product images, gallery images as appropriate
+   - Include hero images, product/content images, gallery images as appropriate
    - Add proper alt text for accessibility
 
 4. DARK THEME IMPLEMENTATION:
@@ -107,7 +118,7 @@ MANDATORY IMPLEMENTATION REQUIREMENTS:
    - Smooth transitions between breakpoints
    - Optimized touch interactions
 
-6. SPECIFIC WEBSITE TYPES:
+6. SPECIFIC WEBSITE TYPE REQUIREMENTS:
 ${getWebsiteTypeRequirements(analysis.websiteType)}
 
 CRITICAL OUTPUT RULES:
@@ -118,13 +129,27 @@ CRITICAL OUTPUT RULES:
 - Ensure all JavaScript/CSS code is valid and functional
 - Test JSON validity before output
 
-Generate a completely functional, production-ready website that matches the user's exact requirements.`;
+Generate a completely functional, production-ready website that matches the user's EXACT requirements for a ${analysis.websiteType} website.`;
 
   return analysisPrompt;
 };
 
 function getRelevantImages(websiteType: string): string[] {
   const imageMap = {
+    'game': [
+      'photo-1542751371-adc38448a05e', // gaming setup
+      'photo-1614728263952-84ea256f9679', // space/sci-fi gaming
+      'photo-1578662996442-48f60103fc96', // fantasy gaming
+      'photo-1558618666-fcd25c85cd64', // racing games
+      'photo-1511512578047-dfb367046420', // esports
+    ],
+    'gaming': [
+      'photo-1542751371-adc38448a05e', // gaming setup
+      'photo-1614728263952-84ea256f9679', // space gaming
+      'photo-1578662996442-48f60103fc96', // fantasy gaming
+      'photo-1558618666-fcd25c85cd64', // racing games
+      'photo-1511512578047-dfb367046420', // esports
+    ],
     'ecommerce': [
       'photo-1441986300917-64674bd600d8', // shopping
       'photo-1556742049-0cfed4f6a45d', // products
@@ -141,7 +166,7 @@ function getRelevantImages(websiteType: string): string[] {
       'photo-1498050108023-c5249f4df085', // workspace
       'photo-1461749280684-dccba630e2f6', // coding
       'photo-1486312338219-ce68d2c6f44d', // laptop
-      'photo-1581091226825-a6a2a5aee158', // creative work
+      'photo-1581091160399-112ba8d25d1f', // creative work
     ],
     'healthcare': [
       'photo-1576091160399-112ba8d25d1f', // medical
@@ -168,6 +193,28 @@ function getRelevantImages(websiteType: string): string[] {
 
 function getWebsiteTypeRequirements(websiteType: string): string {
   const requirements = {
+    'game': `
+GAMING WEBSITE REQUIREMENTS:
+- Hero section with gaming background and statistics (total players, online now, games played)
+- Featured games section with game cards showing images, genres, descriptions
+- Tournament section with prize pools, dates, and registration status
+- Global leaderboard with player rankings, scores, and badges
+- Community section with forums, live streams, clans, and news
+- Gaming-themed navigation with dark theme and neon accents
+- Interactive elements like game previews and tournament registration
+- Footer with game links, community links, and support`,
+    
+    'gaming': `
+GAMING WEBSITE REQUIREMENTS:
+- Hero section with gaming background and statistics (total players, online now, games played)
+- Featured games section with game cards showing images, genres, descriptions
+- Tournament section with prize pools, dates, and registration status
+- Global leaderboard with player rankings, scores, and badges
+- Community section with forums, live streams, clans, and news
+- Gaming-themed navigation with dark theme and neon accents
+- Interactive elements like game previews and tournament registration
+- Footer with game links, community links, and support`,
+    
     'ecommerce': `
 E-COMMERCE REQUIREMENTS:
 - Product catalog with image placeholders and hover effects
@@ -242,28 +289,43 @@ LANDING PAGE REQUIREMENTS:
 export const analyzeUserInput = (input: string): WebsiteRequirements => {
   const lowerInput = input.toLowerCase();
   
-  // Enhanced website type detection
+  // Enhanced website type detection with priority for gaming
   let websiteType = 'business';
   let industry = 'general';
   let keyFeatures: string[] = [];
   
-  if (lowerInput.includes('e-commerce') || lowerInput.includes('shop') || lowerInput.includes('store') || lowerInput.includes('buy') || lowerInput.includes('sell') || lowerInput.includes('product')) {
+  // Gaming detection (highest priority to fix the issue)
+  if (lowerInput.includes('game') || lowerInput.includes('gaming') || lowerInput.includes('esport') || lowerInput.includes('tournament') || lowerInput.includes('player') || lowerInput.includes('leaderboard')) {
+    websiteType = 'game';
+    industry = 'gaming';
+    keyFeatures = ['game catalog', 'tournaments', 'leaderboard', 'player profiles', 'community features'];
+  } 
+  // E-commerce detection
+  else if (lowerInput.includes('e-commerce') || lowerInput.includes('shop') || lowerInput.includes('store') || lowerInput.includes('buy') || lowerInput.includes('sell') || lowerInput.includes('product') || lowerInput.includes('cart')) {
     websiteType = 'ecommerce';
     industry = 'retail';
     keyFeatures = ['shopping cart', 'product catalog', 'checkout', 'user accounts'];
-  } else if (lowerInput.includes('restaurant') || lowerInput.includes('food') || lowerInput.includes('dining') || lowerInput.includes('menu') || lowerInput.includes('cafe')) {
+  } 
+  // Restaurant detection
+  else if (lowerInput.includes('restaurant') || lowerInput.includes('food') || lowerInput.includes('dining') || lowerInput.includes('menu') || lowerInput.includes('cafe') || lowerInput.includes('bistro')) {
     websiteType = 'restaurant';
     industry = 'food & beverage';
     keyFeatures = ['menu display', 'reservations', 'location info', 'photo gallery'];
-  } else if (lowerInput.includes('portfolio') || lowerInput.includes('creative') || lowerInput.includes('designer') || lowerInput.includes('developer') || lowerInput.includes('artist')) {
+  } 
+  // Portfolio detection
+  else if (lowerInput.includes('portfolio') || lowerInput.includes('creative') || lowerInput.includes('designer') || lowerInput.includes('developer') || lowerInput.includes('artist') || lowerInput.includes('freelancer')) {
     websiteType = 'portfolio';
     industry = 'creative';
     keyFeatures = ['project showcase', 'image gallery', 'contact form', 'resume'];
-  } else if (lowerInput.includes('healthcare') || lowerInput.includes('medical') || lowerInput.includes('clinic') || lowerInput.includes('doctor') || lowerInput.includes('hospital')) {
+  } 
+  // Healthcare detection
+  else if (lowerInput.includes('healthcare') || lowerInput.includes('medical') || lowerInput.includes('clinic') || lowerInput.includes('doctor') || lowerInput.includes('hospital') || lowerInput.includes('health')) {
     websiteType = 'healthcare';
     industry = 'healthcare';
     keyFeatures = ['appointment booking', 'doctor profiles', 'services', 'patient portal'];
-  } else if (lowerInput.includes('landing') || lowerInput.includes('product page') || lowerInput.includes('saas') || lowerInput.includes('startup')) {
+  } 
+  // Landing page detection
+  else if (lowerInput.includes('landing') || lowerInput.includes('product page') || lowerInput.includes('saas') || lowerInput.includes('startup') || lowerInput.includes('launch')) {
     websiteType = 'landing';
     industry = 'technology';
     keyFeatures = ['hero section', 'features', 'pricing', 'testimonials'];
@@ -282,17 +344,21 @@ export const analyzeUserInput = (input: string): WebsiteRequirements => {
   if (lowerInput.includes('booking') || lowerInput.includes('appointment')) features.push('booking system');
   if (lowerInput.includes('payment') || lowerInput.includes('checkout')) features.push('payment processing');
   
-  // Enhanced sections detection
+  // Enhanced sections detection based on website type
   const sections = ['hero'];
-  if (lowerInput.includes('about')) sections.push('about');
-  if (lowerInput.includes('service')) sections.push('services');
-  if (lowerInput.includes('product')) sections.push('products');
-  if (lowerInput.includes('team')) sections.push('team');
-  if (lowerInput.includes('contact')) sections.push('contact');
-  if (lowerInput.includes('testimonial') || lowerInput.includes('review')) sections.push('testimonials');
-  if (lowerInput.includes('pricing')) sections.push('pricing');
-  if (lowerInput.includes('gallery')) sections.push('gallery');
-  if (lowerInput.includes('blog')) sections.push('blog');
+  if (websiteType === 'game') {
+    sections.push('games', 'tournaments', 'leaderboard', 'community');
+  } else {
+    if (lowerInput.includes('about')) sections.push('about');
+    if (lowerInput.includes('service')) sections.push('services');
+    if (lowerInput.includes('product')) sections.push('products');
+    if (lowerInput.includes('team')) sections.push('team');
+    if (lowerInput.includes('contact')) sections.push('contact');
+    if (lowerInput.includes('testimonial') || lowerInput.includes('review')) sections.push('testimonials');
+    if (lowerInput.includes('pricing')) sections.push('pricing');
+    if (lowerInput.includes('gallery')) sections.push('gallery');
+    if (lowerInput.includes('blog')) sections.push('blog');
+  }
   
   // Enhanced style detection
   let style = 'modern dark theme';
@@ -303,7 +369,9 @@ export const analyzeUserInput = (input: string): WebsiteRequirements => {
   
   // Enhanced audience detection
   let audience = 'general';
-  if (lowerInput.includes('business') || lowerInput.includes('corporate')) {
+  if (websiteType === 'game') {
+    audience = 'gamers and esports enthusiasts';
+  } else if (lowerInput.includes('business') || lowerInput.includes('corporate')) {
     audience = 'business professionals';
   } else if (lowerInput.includes('young') || lowerInput.includes('millennial')) {
     audience = 'young adults';

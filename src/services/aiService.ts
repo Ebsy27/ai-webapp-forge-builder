@@ -1,3 +1,6 @@
+import { ENHANCED_SYSTEM_PROMPT, generateEnhancedPrompt, analyzeUserInput } from './enhanced/promptTemplates';
+import { checkCodeQuality, enhanceCodeQuality } from './enhanced/codeQualityChecker';
+
 // API Configuration - updated with new key
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = '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';
@@ -7,63 +10,17 @@ export interface GeneratedCode {
   [filename: string]: { code: string };
 }
 
-// Enhanced system prompt for modern website generation with better JSON formatting
-const GROQ_SYSTEM_PROMPT = `You are an expert AI website builder that creates stunning, modern websites based on user ideas. You must carefully analyze user requirements and generate professional, production-ready websites.
+// Enhanced system prompt for modern website generation with comprehensive features
+const MODERN_WEBSITE_PROMPT = ENHANCED_SYSTEM_PROMPT;
 
-CRITICAL JSON REQUIREMENTS:
-- You MUST return ONLY a valid JSON object
-- Use double quotes for all strings
-- Escape special characters properly
-- No trailing commas
-- No comments in JSON
-- No markdown formatting
-
-EXACT JSON STRUCTURE REQUIRED:
-{
-  "/src/App.js": { "code": "// React component code here" },
-  "/src/index.js": { "code": "// React entry point here" },
-  "/src/App.css": { "code": "/* CSS styles here */" },
-  "/public/index.html": { "code": "<!-- HTML template here -->" },
-  "/package.json": { "code": "// package.json content here" }
-}
-
-REQUIREMENT ANALYSIS:
-- Analyze user requests for SPECIFIC applications (calculator, todo app, weather app, etc.)
-- For calculator requests: Generate a functional calculator with buttons, display, and operations
-- For business websites: Create professional landing pages
-- For portfolios: Create showcase websites
-- Match the website type to user's exact request
-
-MODERN DESIGN STANDARDS:
-- Apply contemporary web design trends and best practices
-- Use modern CSS techniques: CSS Grid, Flexbox, smooth animations
-- Implement glassmorphism, gradient backgrounds, and subtle shadows
-- Apply modern typography with Google Fonts (Inter, Poppins, Montserrat)
-- Use sophisticated color palettes and professional spacing
-- Add micro-interactions and hover effects for enhanced UX
-
-FUNCTIONAL REQUIREMENTS:
-- For calculators: Include working arithmetic operations, display, clear functionality
-- For forms: Add proper validation and submission handling
-- For interactive apps: Implement proper state management
-- Ensure all buttons and interactions work properly
-
-Return ONLY the JSON object - no markdown, no explanations, no additional text.`;
-
-const LOCAL_LLM_SYSTEM_PROMPT = `You are a professional web development assistant that enhances websites with advanced styling and modern features. You receive a base website code and improve it with:
-
-1. Advanced CSS animations and transitions
-2. Modern design patterns and layouts
-3. Enhanced user experience elements
-4. Professional color schemes and typography
-5. Responsive design optimizations
-
-Return ONLY the enhanced JSON object with the same structure as the input.`;
-
-// Call GROQ API with enhanced website generation
+// Enhanced API call with quality validation
 async function callGroqAPI(userMessage: string): Promise<string> {
   try {
-    console.log('🚀 Calling GROQ API for modern website generation:', userMessage);
+    console.log('🚀 Calling Enhanced GROQ API for modern website generation:', userMessage);
+    
+    // Analyze user input for better understanding
+    const requirements = analyzeUserInput(userMessage);
+    const enhancedPrompt = generateEnhancedPrompt(userMessage, requirements);
     
     const response = await fetch(GROQ_API_ENDPOINT, {
       method: 'POST',
@@ -76,22 +33,11 @@ async function callGroqAPI(userMessage: string): Promise<string> {
         messages: [
           {
             role: 'system',
-            content: GROQ_SYSTEM_PROMPT
+            content: MODERN_WEBSITE_PROMPT
           },
           {
             role: 'user',
-            content: `Create a website based on this user request: "${userMessage}"
-
-IMPORTANT: Analyze the request carefully:
-- If user wants a CALCULATOR: Create a functional calculator app with number buttons, operation buttons, display screen, and working arithmetic
-- If user wants a BUSINESS SITE: Create a professional business website
-- If user wants a PORTFOLIO: Create a showcase portfolio website
-- If user wants a BLOG: Create a blog-style website
-- If user wants an E-COMMERCE: Create a shopping website
-
-Make sure the website matches EXACTLY what the user is asking for. Don't create a generic business site unless they specifically ask for a business website.
-
-Return valid JSON only - no markdown formatting, no code blocks, no explanations.`
+            content: enhancedPrompt
           }
         ],
         temperature: 0.7,
@@ -106,10 +52,10 @@ Return valid JSON only - no markdown formatting, no code blocks, no explanations
     }
 
     const data = await response.json();
-    console.log('✅ GROQ API response received successfully');
+    console.log('✅ Enhanced GROQ API response received successfully');
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('❌ GROQ API call failed:', error);
+    console.error('❌ Enhanced GROQ API call failed:', error);
     throw error;
   }
 }
@@ -129,7 +75,15 @@ async function callLocalLLM(baseCode: string, userMessage: string): Promise<stri
         messages: [
           {
             role: 'system',
-            content: LOCAL_LLM_SYSTEM_PROMPT
+            content: `You are a professional web development assistant that enhances websites with advanced styling and modern features. You receive a base website code and improve it with:
+
+1. Advanced CSS animations and transitions
+2. Modern design patterns and layouts
+3. Enhanced user experience elements
+4. Professional color schemes and typography
+5. Responsive design optimizations
+
+Return ONLY the enhanced JSON object with the same structure as the input.`
           },
           {
             role: 'user',
@@ -1603,22 +1557,38 @@ export default App;`;
 // Main API function
 export async function generateWebsite(userMessage: string): Promise<GeneratedCode> {
   try {
-    console.log('🌟 Starting modern website generation process...');
+    console.log('🌟 Starting enhanced website generation process...');
     
-    // Try GROQ API first
+    // Try GROQ API first with enhanced prompts
     const groqResponse = await callGroqAPI(userMessage);
     
     try {
       // Parse the response
-      const parsedCode = parseCodeResponse(groqResponse);
-      console.log('✅ Successfully generated modern website via GROQ');
+      let parsedCode = parseCodeResponse(groqResponse);
+      
+      // Check code quality
+      const qualityCheck = checkCodeQuality(parsedCode);
+      console.log(`📊 Code quality score: ${qualityCheck.score}/100`);
+      
+      if (qualityCheck.score < 70) {
+        console.log('⚠️ Code quality below threshold, enhancing...');
+        parsedCode = enhanceCodeQuality(parsedCode);
+      }
+      
+      // Log quality metrics
+      if (qualityCheck.issues.length > 0) {
+        console.log('🔍 Quality issues found:', qualityCheck.issues);
+        console.log('💡 Suggestions:', qualityCheck.suggestions);
+      }
+      
+      console.log('✅ Enhanced website generation completed successfully');
       return parsedCode;
     } catch (parseError) {
       console.log('⚠️ GROQ response parsing failed, creating intelligent fallback');
       return createIntelligentFallback(userMessage);
     }
   } catch (error) {
-    console.error('❌ GROQ API failed, creating intelligent fallback:', error);
+    console.error('❌ Enhanced website generation failed, creating intelligent fallback:', error);
     return createIntelligentFallback(userMessage);
   }
 }

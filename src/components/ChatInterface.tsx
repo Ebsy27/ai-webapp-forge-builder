@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +22,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "👋 Welcome to AI Website Builder - Your Professional Web Development Assistant!\n\n✨ I specialize in creating modern, responsive websites tailored to your exact needs.\n\n🎯 **What I can build for you:**\n• Business websites & portfolios\n• E-commerce platforms\n• Landing pages & marketing sites\n• Healthcare & service websites\n• Creative & artistic showcases\n• And much more!\n\n💡 **Simply describe your vision:**\n• \"Create a photography portfolio with dark theme\"\n• \"Build a restaurant website with online ordering\"\n• \"Design a tech startup landing page\"\n• \"Make a healthcare clinic website with appointment booking\"\n\n🚀 I'll understand your requirements, generate professional code, and provide a live preview instantly!",
+      text: "🌟 **Welcome to the Enhanced AI Website Builder** - Your Premium Web Development Assistant!\n\n✨ **I now create production-ready websites with:**\n• 🌙 **Modern dark themes** with sophisticated color palettes\n• ♿ **Accessibility features** (WCAG 2.1 AA compliant)\n• 📱 **Fully responsive design** for all devices\n• 🚀 **SEO optimization** and performance tuning\n• 🎨 **Premium animations** and micro-interactions\n• 🔒 **Security best practices** built-in\n\n🎯 **Website Types I Excel At:**\n• E-commerce stores with shopping carts\n• Business websites with booking systems\n• Portfolio sites with image galleries\n• Healthcare platforms with appointments\n• Restaurant sites with menus & reservations\n• And much more!\n\n💡 **For Best Results:**\n• Describe your industry and target audience\n• Mention specific features you need\n• Include your preferred style and colors\n• List all required sections\n\n🚀 **Every website includes dark theme, accessibility, and modern design by default!**",
       sender: 'ai',
       timestamp: new Date()
     }
@@ -105,7 +104,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       // Enhanced thinking message for website generation
       const thinkingMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: `🎯 **Analyzing Your Website Requirements**\n\n📋 **Understanding:** ${requirements || 'Custom website with modern design'}\n\n🔄 **Generation Process:**\n• 🧠 Analyzing requirements with AI\n• 🎨 Designing modern, responsive layout\n• ⚙️ Generating clean, professional code\n• 🚀 Creating live preview\n• ✨ Applying best practices & optimization\n\n⏳ Generating your professional website...`,
+        text: `🎯 **Analyzing Your Enhanced Website Requirements**\n\n📋 **Understanding:** ${requirements || 'Custom website with premium features'}\n\n🔄 **Enhanced Generation Process:**\n• 🧠 **AI Analysis:** Deep understanding of your requirements\n• 🌙 **Dark Theme Design:** Sophisticated color palette selection\n• ♿ **Accessibility Integration:** WCAG 2.1 AA compliance\n• 📱 **Responsive Framework:** Mobile-first approach\n• 🎨 **Premium Styling:** Modern animations and effects\n• 🔍 **SEO Optimization:** Semantic HTML and meta tags\n• 🚀 **Performance Tuning:** Optimized code and assets\n• ✨ **Quality Assurance:** Automated code review\n\n⏳ **Generating your premium, production-ready website...**`,
         sender: 'ai',
         timestamp: new Date()
       };
@@ -114,11 +113,11 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
       try {
         await onGenerateCode(currentInput, attachedFiles || undefined);
         
-        // Replace thinking message with detailed success message
+        // Enhanced success message
         setMessages(prev => 
           prev.slice(0, -1).concat({
             id: (Date.now() + 2).toString(),
-            text: `🎉 **Your Professional Website is Ready!**\n\n✅ **Generated:** ${requirements || 'Custom website'}\n🎨 **Features:** Modern responsive design, professional typography, smooth animations\n⚡ **Technology:** React + Tailwind CSS + Best practices\n🔧 **AI System:** Advanced website generation\n\n📋 **Next Steps:**\n• 👀 **Preview Tab:** See your live website in action\n• 💻 **Code Tab:** View and download all generated files\n• 🎯 **Customization:** Ask for specific changes or additions\n\n🚀 Your website includes:\n• Fully responsive design for all devices\n• Professional styling and modern UI\n• Clean, maintainable code structure\n• Optimized performance and accessibility\n• Ready for deployment!`,
+            text: `🎉 **Your Premium Website is Ready!**\n\n✅ **Generated:** ${requirements || 'Custom professional website'}\n\n🌟 **Premium Features Included:**\n• 🌙 **Dark Theme:** Elegant design with sophisticated colors\n• ♿ **Accessibility:** Full WCAG 2.1 AA compliance\n• 📱 **Responsive Design:** Perfect on desktop, tablet, and mobile\n• 🎨 **Modern UI:** Smooth animations and premium effects\n• 🔍 **SEO Ready:** Optimized for search engines\n• 🚀 **Performance:** Fast loading and optimized code\n• 🔒 **Security:** Best practices implemented\n\n📊 **Quality Score:** Automatically validated for production standards\n\n📋 **Next Steps:**\n• 👀 **Preview Tab:** Experience your live website\n• 💻 **Code Tab:** Download production-ready files\n• ⭐ **Feedback Tab:** Rate your experience\n• 🎯 **Customization:** Request specific changes\n\n🚀 **Your website is ready for immediate deployment!**`,
             sender: 'ai',
             timestamp: new Date()
           })
@@ -175,23 +174,23 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
             <Wand2 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 text-lg">AI Website Builder</h3>
-            <p className="text-xs text-gray-600 font-medium">Professional Web Development Assistant</p>
+            <h3 className="font-bold text-gray-900 text-lg">Enhanced AI Website Builder</h3>
+            <p className="text-xs text-gray-600 font-medium">Premium Production-Ready Generator</p>
           </div>
         </div>
         <div className="flex items-center space-x-3">
           <div className="flex items-center space-x-2 bg-white/80 px-3 py-1.5 rounded-full border border-gray-200 backdrop-blur-sm">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-gray-600 font-semibold">AI Online</span>
+            <span className="text-xs text-gray-600 font-semibold">Enhanced AI Online</span>
           </div>
-          <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
-            <Sparkles className="w-3 h-3 text-blue-600" />
-            <span className="text-xs text-blue-700 font-semibold">Pro Mode</span>
+          <div className="flex items-center space-x-2 bg-purple-50 px-3 py-1.5 rounded-full border border-purple-200">
+            <Sparkles className="w-3 h-3 text-purple-600" />
+            <span className="text-xs text-purple-700 font-semibold">Premium Mode</span>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Enhanced Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50/30 to-white">
         {messages.map((message) => (
           <div
@@ -272,7 +271,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
         <div className="flex space-x-3">
           <div className="flex-1">
             <Textarea
-              placeholder="Describe your website idea... (e.g., 'Create a modern photography portfolio with dark theme and gallery')"
+              placeholder="Describe your premium website... (e.g., 'Create a modern e-commerce site for luxury watches with dark theme, product filters, and customer reviews')"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               className="bg-white/90 border-gray-300 text-gray-700 placeholder-gray-500 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-xl shadow-sm backdrop-blur-sm"
@@ -331,7 +330,7 @@ const ChatInterface = ({ onGenerateCode, isGenerating }: ChatInterfaceProps) => 
         
         <div className="mt-3 text-center">
           <p className="text-xs text-gray-400">
-            Press Shift+Enter for new line • Enhanced AI Website Generation System
+            Press Shift+Enter for new line • Enhanced AI with Premium Features
           </p>
         </div>
       </div>

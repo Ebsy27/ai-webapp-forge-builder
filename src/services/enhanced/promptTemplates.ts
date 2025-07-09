@@ -12,54 +12,54 @@ export interface WebsiteRequirements {
 
 export const ENHANCED_SYSTEM_PROMPT = `You are an elite AI web developer specializing in creating production-ready, modern websites with exceptional design and functionality.
 
-CRITICAL DESIGN REQUIREMENTS:
-- ALWAYS use a modern, elegant DARK THEME as the primary design
-- Apply sophisticated color schemes with carefully chosen accent colors
-- Use premium typography (Inter, Poppins, Montserrat) with perfect hierarchy
-- Implement glassmorphism, subtle gradients, and modern shadows
-- Add smooth hover effects, micro-interactions, and tasteful animations
-- Ensure pixel-perfect spacing, alignment, and visual balance
+CRITICAL REQUIREMENTS:
+- Generate COMPLETE, FUNCTIONAL React applications
+- Use ONLY valid JSON format - NO template literals, NO backticks, NO markdown
+- All code must be properly escaped JSON strings
+- Every website MUST have a modern, elegant DARK THEME
+- Implement sophisticated glassmorphism, gradients, and premium typography
+- Add smooth animations, hover effects, and micro-interactions
+- Ensure 100% responsive design and accessibility compliance
 
-TECHNICAL EXCELLENCE:
-- Generate clean, semantic HTML5 with proper structure
-- Use modern CSS techniques: CSS Grid, Flexbox, CSS Custom Properties
-- Implement responsive design with mobile-first approach
-- Ensure accessibility (WCAG 2.1 AA compliance)
-- Add SEO optimization with proper meta tags and semantic markup
-- Include security best practices for forms and data handling
+MANDATORY TECHNICAL SPECIFICATIONS:
+- React 18 with functional components and hooks
+- Modern CSS with flexbox/grid layouts
+- Semantic HTML5 structure
+- Professional color schemes with dark backgrounds
+- Premium fonts (Inter, Poppins) with perfect typography hierarchy
+- Smooth scrolling navigation and interactive elements
+- Mobile-first responsive design
+- Performance optimization and SEO best practices
 
-MANDATORY FEATURES FOR ALL SITES:
-- Sticky navigation with smooth scrolling
-- Professional hero section with compelling CTAs
-- Fully responsive layout (desktop, tablet, mobile)
-- Loading states and smooth transitions
-- Accessibility features (keyboard navigation, screen reader support)
-- Performance optimizations (lazy loading, optimized images)
+DESIGN REQUIREMENTS:
+- Dark theme with sophisticated color palettes (#0a0a0a, #1a1a2e backgrounds)
+- Gradient accents and glassmorphism effects
+- Modern shadows, borders, and visual depth
+- Professional spacing and visual hierarchy
+- Consistent branding and visual identity
+- Accessible contrast ratios and keyboard navigation
 
-WEBSITE STRUCTURE REQUIREMENTS:
-- Modern React components with TypeScript
-- Proper state management and hooks usage
-- Clean component architecture with reusable elements
-- Optimized CSS with utility classes and custom properties
-- Professional color palette with dark theme priority
+OUTPUT REQUIREMENTS:
+- Return ONLY valid JSON object with exact structure below
+- NO explanations, NO markdown, NO comments outside JSON
+- All code must be properly escaped JSON strings
+- Ensure all quotes are properly escaped
+- No backticks or template literals allowed
 
-OUTPUT FORMAT:
-Return ONLY valid JSON with this exact structure:
+REQUIRED JSON STRUCTURE:
 {
-  "/src/App.js": { "code": "// Complete React application code" },
-  "/src/index.js": { "code": "// React entry point" },
-  "/src/App.css": { "code": "/* Modern CSS with dark theme */" },
+  "/src/App.js": { "code": "// Complete React component code here" },
+  "/src/index.js": { "code": "// React DOM render code here" },
+  "/src/App.css": { "code": "/* Complete CSS with dark theme */" },
   "/public/index.html": { "code": "<!-- HTML template -->" },
   "/package.json": { "code": "// Package configuration" }
-}
-
-NO markdown formatting, NO explanations, NO code blocks - ONLY the JSON object.`;
+}`;
 
 export const generateEnhancedPrompt = (userInput: string, requirements?: WebsiteRequirements): string => {
   const analysisPrompt = `
-WEBSITE GENERATION REQUEST: "${userInput}"
+CREATE A MODERN WEBSITE: "${userInput}"
 
-ANALYSIS & REQUIREMENTS:
+DETAILED SPECIFICATIONS:
 ${requirements ? `
 - Industry: ${requirements.industry}
 - Purpose: ${requirements.purpose}
@@ -71,20 +71,51 @@ ${requirements.colors ? `- Color Preferences: ${requirements.colors}` : ''}
 ${requirements.branding ? `- Branding Notes: ${requirements.branding}` : ''}
 ` : ''}
 
-SPECIFIC IMPLEMENTATION REQUIREMENTS:
-1. DARK THEME PRIORITY: Use sophisticated dark backgrounds (#0f0f0f, #1a1a1a, #2d2d2d) with strategic accent colors
-2. PREMIUM TYPOGRAPHY: Implement Inter/Poppins with perfect font weights and spacing
-3. ADVANCED FEATURES: Include all requested functionality with modern UX patterns
-4. RESPONSIVE EXCELLENCE: Ensure flawless experience across all devices
-5. PERFORMANCE OPTIMIZATION: Implement lazy loading, smooth animations, and efficient rendering
-6. ACCESSIBILITY COMPLIANCE: Full keyboard navigation, proper ARIA labels, contrast ratios
-7. SEO OPTIMIZATION: Semantic HTML, meta tags, structured data where applicable
+MANDATORY IMPLEMENTATION REQUIREMENTS:
 
-WEBSITE TYPE SPECIFIC REQUIREMENTS:
+1. DARK THEME PRIORITY:
+   - Use sophisticated dark backgrounds (#0a0a0a, #1a1a2e, #16213e)
+   - Implement gradient overlays and glassmorphism effects
+   - Add strategic accent colors (vibrant blues, teals, or purples)
+   - Ensure proper contrast ratios for accessibility
+
+2. PREMIUM DESIGN ELEMENTS:
+   - Modern typography with Inter/Poppins fonts
+   - Smooth animations and hover effects
+   - Glassmorphism cards with backdrop-filter
+   - Gradient buttons and interactive elements
+   - Professional shadows and depth effects
+
+3. RESPONSIVE EXCELLENCE:
+   - Mobile-first CSS Grid and Flexbox layouts
+   - Smooth transitions between breakpoints
+   - Optimized touch interactions
+   - Consistent spacing across all devices
+
+4. FUNCTIONAL COMPLETENESS:
+   - Working navigation with smooth scrolling
+   - Interactive buttons and form elements
+   - Dynamic content and state management
+   - Professional loading states and transitions
+
+5. PRODUCTION READINESS:
+   - Clean, semantic HTML structure
+   - Optimized CSS with custom properties
+   - Accessible markup with proper ARIA labels
+   - SEO-friendly meta tags and structure
+
+WEBSITE TYPE SPECIFIC FEATURES:
 ${getTypeSpecificRequirements(userInput)}
 
-Generate a completely unique, production-ready website that exceeds modern web standards.
-Return ONLY the JSON structure with complete, functional code.`;
+CRITICAL JSON OUTPUT RULES:
+- Return ONLY the JSON object with the required structure
+- Use double quotes for all JSON keys and values
+- Properly escape all quotes within code strings
+- NO template literals (backticks) allowed
+- NO markdown code blocks or explanations
+- Ensure all JavaScript/CSS code is valid and functional
+
+Generate a completely unique, production-ready website that exceeds modern web standards.`;
 
   return analysisPrompt;
 };
@@ -92,86 +123,92 @@ Return ONLY the JSON structure with complete, functional code.`;
 function getTypeSpecificRequirements(userInput: string): string {
   const input = userInput.toLowerCase();
   
-  if (input.includes('e-commerce') || input.includes('shop') || input.includes('store')) {
+  if (input.includes('e-commerce') || input.includes('shop') || input.includes('store') || input.includes('sneaker')) {
     return `
-E-COMMERCE SPECIFIC:
-- Product catalog with advanced filtering and search
-- Shopping cart with persistent state
-- Wishlist functionality
-- Product image galleries with zoom
-- Customer reviews and ratings
-- Secure checkout process simulation
-- Inventory status indicators
-- Related products suggestions`;
+E-COMMERCE REQUIREMENTS:
+- Product showcase with image placeholders and hover effects
+- Shopping cart functionality with add/remove items
+- Product categories and filtering options
+- Professional product cards with pricing
+- Smooth animations for product interactions
+- Mobile-optimized shopping experience
+- Secure-looking checkout process
+- Customer testimonials and reviews section`;
   }
   
   if (input.includes('portfolio') || input.includes('creative') || input.includes('photography')) {
     return `
-PORTFOLIO SPECIFIC:
-- Image galleries with lightbox functionality
-- Category-based filtering system
-- Smooth parallax scrolling effects
-- Project case studies with detailed views
-- Client testimonials carousel
-- Contact form with project inquiry fields
-- Social media integration
-- Download portfolio/resume functionality`;
+PORTFOLIO REQUIREMENTS:
+- Image gallery with lightbox effects
+- Project showcase with hover animations
+- Skills section with progress indicators
+- Professional about section
+- Contact form with validation
+- Smooth scrolling between sections
+- Creative animations and transitions
+- Responsive image galleries`;
   }
   
   if (input.includes('restaurant') || input.includes('food') || input.includes('dining')) {
     return `
-RESTAURANT SPECIFIC:
-- Interactive menu with categories and pricing
-- Online reservation system
-- Location map with directions
-- Chef and staff profiles
-- Customer reviews and ratings
-- Special events and promotions
-- Delivery/takeout options
-- Nutritional information and allergen details`;
+RESTAURANT REQUIREMENTS:
+- Menu showcase with categories and pricing
+- Hero section with food imagery
+- Location and hours information
+- Reservation system interface
+- Chef profiles and restaurant story
+- Customer reviews section
+- Mobile-friendly menu browsing
+- Social media integration`;
   }
   
   if (input.includes('healthcare') || input.includes('medical') || input.includes('clinic')) {
     return `
-HEALTHCARE SPECIFIC:
-- Services overview with detailed descriptions
+HEALTHCARE REQUIREMENTS:
+- Services overview with medical icons
 - Doctor profiles with specializations
-- Appointment booking system
+- Appointment booking interface
 - Patient testimonials
 - Insurance information
-- Emergency contact information
-- Health resources and education
-- HIPAA compliance considerations`;
+- Emergency contact details
+- Professional medical design
+- Accessibility compliance`;
   }
   
   return `
-BUSINESS SPECIFIC:
-- Professional hero section with value proposition
-- Services/products showcase
+BUSINESS REQUIREMENTS:
+- Professional hero section with compelling CTAs
+- Services showcase with detailed descriptions
 - Team member profiles
 - Client testimonials and case studies
-- Pricing plans comparison
-- Contact forms with business inquiry fields
-- Company history and mission
-- Blog/news section for content marketing`;
+- Contact forms and business information
+- Professional branding and typography
+- Trust-building elements
+- Lead generation optimization`;
 }
 
 export const analyzeUserInput = (input: string): WebsiteRequirements => {
   const lowerInput = input.toLowerCase();
   
-  // Industry detection
+  // Enhanced industry detection
   let industry = 'general';
-  if (lowerInput.includes('e-commerce') || lowerInput.includes('shop') || lowerInput.includes('store')) industry = 'e-commerce';
-  else if (lowerInput.includes('restaurant') || lowerInput.includes('food')) industry = 'restaurant';
-  else if (lowerInput.includes('healthcare') || lowerInput.includes('medical')) industry = 'healthcare';
-  else if (lowerInput.includes('portfolio') || lowerInput.includes('creative')) industry = 'creative';
-  else if (lowerInput.includes('business') || lowerInput.includes('corporate')) industry = 'business';
+  if (lowerInput.includes('e-commerce') || lowerInput.includes('shop') || lowerInput.includes('store') || lowerInput.includes('sneaker')) {
+    industry = 'e-commerce';
+  } else if (lowerInput.includes('restaurant') || lowerInput.includes('food')) {
+    industry = 'restaurant';
+  } else if (lowerInput.includes('healthcare') || lowerInput.includes('medical')) {
+    industry = 'healthcare';
+  } else if (lowerInput.includes('portfolio') || lowerInput.includes('creative')) {
+    industry = 'creative';
+  } else if (lowerInput.includes('business') || lowerInput.includes('corporate')) {
+    industry = 'business';
+  }
   
-  // Purpose extraction
+  // Enhanced purpose extraction
   const purposes = ['showcase', 'sell', 'inform', 'book', 'connect', 'display'];
   const purpose = purposes.find(p => lowerInput.includes(p)) || 'showcase';
   
-  // Features detection
+  // Enhanced features detection
   const features = [];
   if (lowerInput.includes('cart') || lowerInput.includes('shopping')) features.push('shopping cart');
   if (lowerInput.includes('booking') || lowerInput.includes('appointment')) features.push('appointment booking');
@@ -179,8 +216,9 @@ export const analyzeUserInput = (input: string): WebsiteRequirements => {
   if (lowerInput.includes('review') || lowerInput.includes('testimonial')) features.push('customer reviews');
   if (lowerInput.includes('contact') || lowerInput.includes('form')) features.push('contact form');
   if (lowerInput.includes('search') || lowerInput.includes('filter')) features.push('search and filter');
+  if (lowerInput.includes('animation') || lowerInput.includes('interactive')) features.push('animations');
   
-  // Sections detection
+  // Enhanced sections detection
   const sections = ['hero'];
   if (lowerInput.includes('about')) sections.push('about');
   if (lowerInput.includes('service')) sections.push('services');
@@ -189,19 +227,26 @@ export const analyzeUserInput = (input: string): WebsiteRequirements => {
   if (lowerInput.includes('contact')) sections.push('contact');
   if (lowerInput.includes('testimonial')) sections.push('testimonials');
   if (lowerInput.includes('pricing')) sections.push('pricing');
+  if (lowerInput.includes('gallery')) sections.push('gallery');
   
-  // Style detection
-  let style = 'modern';
-  if (lowerInput.includes('minimal')) style = 'minimal';
-  if (lowerInput.includes('elegant')) style = 'elegant';
-  if (lowerInput.includes('bold')) style = 'bold';
-  if (lowerInput.includes('premium')) style = 'premium';
+  // Enhanced style detection
+  let style = 'modern dark theme';
+  if (lowerInput.includes('minimal')) style = 'minimal dark theme';
+  if (lowerInput.includes('elegant')) style = 'elegant dark theme';
+  if (lowerInput.includes('bold')) style = 'bold dark theme';
+  if (lowerInput.includes('premium')) style = 'premium dark theme';
   
-  // Audience detection
+  // Enhanced audience detection
   let audience = 'general';
-  if (lowerInput.includes('business') || lowerInput.includes('corporate')) audience = 'business professionals';
-  else if (lowerInput.includes('young') || lowerInput.includes('millennial')) audience = 'young adults';
-  else if (lowerInput.includes('luxury') || lowerInput.includes('premium')) audience = 'luxury consumers';
+  if (lowerInput.includes('business') || lowerInput.includes('corporate')) {
+    audience = 'business professionals';
+  } else if (lowerInput.includes('young') || lowerInput.includes('millennial')) {
+    audience = 'young adults';
+  } else if (lowerInput.includes('luxury') || lowerInput.includes('premium')) {
+    audience = 'luxury consumers';
+  } else if (lowerInput.includes('sneaker') || lowerInput.includes('fashion')) {
+    audience = 'fashion enthusiasts';
+  }
   
   return {
     industry,

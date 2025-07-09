@@ -1,10 +1,9 @@
 import { ENHANCED_SYSTEM_PROMPT, generateEnhancedPrompt, analyzeUserInput } from './enhanced/promptTemplates';
 import { checkCodeQuality, enhanceCodeQuality } from './enhanced/codeQualityChecker';
 
-// API Configuration - updated with new key
+// API Configuration
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = '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';
-const LOCAL_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions';
 
 export interface GeneratedCode {
   [filename: string]: { code: string };
@@ -32,7 +31,7 @@ async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama3-70b-8192', // Using larger model for better understanding
         messages: [
           {
             role: 'system',
@@ -43,10 +42,10 @@ async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string>
             content: enhancedPrompt
           }
         ],
-        temperature: 0.3,
-        max_tokens: 6000,
-        top_p: 0.9,
-        frequency_penalty: 0.1,
+        temperature: 0.1, // Lower temperature for more consistent JSON output
+        max_tokens: 8000, // Increased for more detailed responses
+        top_p: 0.8,
+        frequency_penalty: 0.2,
         presence_penalty: 0.1,
       }),
     });
@@ -77,7 +76,7 @@ async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string>
   }
 }
 
-// Enhanced JSON parsing with better error handling
+// Enhanced JSON parsing with aggressive cleaning
 function parseCodeResponse(response: string): GeneratedCode {
   try {
     console.log('🔍 Parsing enhanced website response...');
@@ -85,28 +84,51 @@ function parseCodeResponse(response: string): GeneratedCode {
     
     let cleanedResponse = response.trim();
     
-    // Remove markdown code blocks and any wrapper text
+    // Remove any text before the JSON object
+    const jsonStart = cleanedResponse.indexOf('{');
+    if (jsonStart > 0) {
+      cleanedResponse = cleanedResponse.substring(jsonStart);
+    }
+    
+    // Remove any text after the JSON object
+    const jsonEnd = cleanedResponse.lastIndexOf('}');
+    if (jsonEnd > 0) {
+      cleanedResponse = cleanedResponse.substring(0, jsonEnd + 1);
+    }
+    
+    // Remove markdown code blocks
     cleanedResponse = cleanedResponse.replace(/```json\s*/gi, '');
     cleanedResponse = cleanedResponse.replace(/```javascript\s*/gi, '');
     cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
     cleanedResponse = cleanedResponse.replace(/^```.*$/gm, '');
     
-    // Find the JSON object boundaries
-    const firstBrace = cleanedResponse.indexOf('{');
-    const lastBrace = cleanedResponse.lastIndexOf('}');
+    // Fix common JSON issues
+    cleanedResponse = cleanedResponse.replace(/'/g, '"'); // Replace single quotes
+    cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}'); // Remove trailing commas
+    cleanedResponse = cleanedResponse.replace(/,\s*]/g, ']'); // Remove trailing commas in arrays
     
-    if (firstBrace === -1 || lastBrace === -1) {
-      throw new Error('No valid JSON object found in response');
-    }
+    // Fix double-encoded JSON strings - this is the main issue
+    cleanedResponse = cleanedResponse.replace(/"code":\s*"\\?"([^"]*(?:\\.[^"]*)*)"\\?"/g, (match, content) => {
+      // Properly unescape the content
+      const unescapedContent = content
+        .replace(/\\"/g, '"')
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\t/g, '\t')
+        .replace(/\\\\/g, '\\');
+      
+      // Re-escape for JSON
+      const reescapedContent = unescapedContent
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t');
+      
+      return `"code": "${reescapedContent}"`;
+    });
     
-    cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
-    
-    // Fix common JSON formatting issues
-    cleanedResponse = cleanedResponse.replace(/'/g, '"');
-    cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}');
-    cleanedResponse = cleanedResponse.replace(/,\s*]/g, ']');
-    
-    // Fix template literal issues - replace backticks with proper JSON strings
+    // Remove template literals and fix backticks
     cleanedResponse = cleanedResponse.replace(/`([^`]*)`/g, (match, content) => {
       const escapedContent = content
         .replace(/\\/g, '\\\\')
@@ -117,12 +139,12 @@ function parseCodeResponse(response: string): GeneratedCode {
       return `"${escapedContent}"`;
     });
     
-    // Remove any remaining invalid characters
+    // Remove invalid control characters
     cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
     
+    // Validate JSON before parsing
     console.log('🧹 Cleaned response preview:', cleanedResponse.substring(0, 500) + '...');
     
-    // Validate JSON structure before parsing
     try {
       JSON.parse(cleanedResponse);
     } catch (jsonError) {
@@ -164,11 +186,19 @@ function parseCodeResponse(response: string): GeneratedCode {
 function createIntelligentFallback(userMessage: string): GeneratedCode {
   console.log('🎨 Creating intelligent fallback website for:', userMessage);
   
-  const websiteConfig = analyzeRequirements(userMessage);
-  console.log('📋 Website configuration:', websiteConfig);
+  const analysis = analyzeUserInput(userMessage);
+  console.log('📋 Website analysis:', analysis);
+  
+  const websiteConfig = {
+    type: analysis.websiteType,
+    name: extractWebsiteName(userMessage, analysis.websiteType),
+    industry: analysis.industry,
+    features: analysis.keyFeatures,
+    sections: analysis.sections
+  };
   
   return {
-    '/src/App.js': { code: generateModernWebsite(websiteConfig) },
+    '/src/App.js': { code: generateSpecificWebsite(websiteConfig) },
     '/src/index.js': { code: generateReactIndex() },
     '/src/App.css': { code: generateModernCSS(websiteConfig) },
     '/public/index.html': { code: generateModernHTML(websiteConfig) },
@@ -176,77 +206,44 @@ function createIntelligentFallback(userMessage: string): GeneratedCode {
   };
 }
 
-function analyzeRequirements(userMessage: string) {
+function extractWebsiteName(userMessage: string, websiteType: string): string {
   const lowerMessage = userMessage.toLowerCase();
   
-  let type = 'business';
-  let sections = ['hero', 'about', 'contact'];
-  let theme = 'modern';
-  let industry = 'general';
-  
-  // Enhanced detection logic
-  if (lowerMessage.includes('calculator') || lowerMessage.includes('math')) {
-    type = 'calculator';
-    sections = ['calculator'];
-    industry = 'utility';
-  } else if (lowerMessage.includes('todo') || lowerMessage.includes('task')) {
-    type = 'todo';
-    sections = ['todo'];
-    industry = 'productivity';
-  } else if (lowerMessage.includes('e-commerce') || lowerMessage.includes('shop') || lowerMessage.includes('store') || lowerMessage.includes('sneaker')) {
-    type = 'ecommerce';
-    sections = ['hero', 'products', 'about', 'cart', 'contact'];
-    industry = 'retail';
-  } else if (lowerMessage.includes('portfolio') || lowerMessage.includes('creative')) {
-    type = 'portfolio';
-    sections = ['hero', 'about', 'gallery', 'skills', 'contact'];
-    industry = 'creative';
-  } else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food')) {
-    type = 'restaurant';
-    sections = ['hero', 'menu', 'about', 'location', 'contact'];
-    industry = 'food';
-  } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic')) {
-    type = 'healthcare';
-    sections = ['hero', 'services', 'doctors', 'appointments', 'contact'];
-    industry = 'healthcare';
-  }
-  
-  return {
-    type,
-    sections,
-    theme: 'dark', // Always use dark theme as requested
-    industry,
-    name: extractWebsiteName(userMessage),
-    description: userMessage
+  // Type-specific names
+  const typeNames = {
+    'ecommerce': 'Premium Store',
+    'restaurant': 'Gourmet Restaurant',
+    'portfolio': 'Creative Portfolio',
+    'healthcare': 'Health Clinic',
+    'business': 'Business Solutions',
+    'landing': 'Product Landing'
   };
-}
-
-function extractWebsiteName(userMessage: string): string {
-  const lowerMessage = userMessage.toLowerCase();
   
-  if (lowerMessage.includes('sneaker')) return 'Premium Sneaker Store';
-  if (lowerMessage.includes('calculator')) return 'Modern Calculator';
-  if (lowerMessage.includes('todo')) return 'Task Manager';
-  
+  // Extract business name from patterns
   const businessMatches = userMessage.match(/for\s+([A-Za-z\s]+)(?:\s+website|\s+site)/i);
   if (businessMatches) return businessMatches[1].trim();
   
-  return 'Modern Website';
+  return typeNames[websiteType] || 'Modern Website';
 }
 
-// Generate modern websites based on type
-function generateModernWebsite(config: any): string {
+// Generate specific websites based on type with images
+function generateSpecificWebsite(config: any): string {
   const { type } = config;
   
-  if (type === 'ecommerce') {
-    return generateEcommerceWebsite(config);
-  } else if (type === 'calculator') {
-    return generateCalculatorWebsite(config);
-  } else if (type === 'todo') {
-    return generateTodoWebsite(config);
+  switch (type) {
+    case 'ecommerce':
+      return generateEcommerceWebsite(config);
+    case 'restaurant':
+      return generateRestaurantWebsite(config);
+    case 'portfolio':
+      return generatePortfolioWebsite(config);
+    case 'healthcare':
+      return generateHealthcareWebsite(config);
+    case 'landing':
+      return generateLandingWebsite(config);
+    default:
+      return generateBusinessWebsite(config);
   }
-  
-  return generateBusinessWebsite(config);
 }
 
 function generateEcommerceWebsite(config: any): string {
@@ -255,54 +252,65 @@ function generateEcommerceWebsite(config: any): string {
 function App() {
   const [cart, setCart] = useState([]);
   const [activeSection, setActiveSection] = useState('home');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const products = [
     {
       id: 1,
-      name: 'Air Force Elite',
+      name: 'Premium Sneaker',
       price: 199.99,
-      image: '/api/placeholder/300/300',
-      category: 'Basketball'
+      image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=600&fit=crop',
+      category: 'Footwear'
     },
     {
       id: 2,
-      name: 'Street Runner Pro',
-      price: 159.99,
-      image: '/api/placeholder/300/300',
-      category: 'Running'
+      name: 'Designer Watch',
+      price: 299.99,
+      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop',
+      category: 'Accessories'
     },
     {
       id: 3,
-      name: 'Urban Classic',
-      price: 129.99,
-      image: '/api/placeholder/300/300',
-      category: 'Lifestyle'
+      name: 'Wireless Headphones',
+      price: 159.99,
+      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop',
+      category: 'Electronics'
     },
     {
       id: 4,
-      name: 'Court Master',
-      price: 179.99,
-      image: '/api/placeholder/300/300',
-      category: 'Basketball'
+      name: 'Leather Jacket',
+      price: 399.99,
+      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&h=600&fit=crop',
+      category: 'Clothing'
     }
   ];
 
   const addToCart = (product) => {
-    setCart([...cart, { ...product, id: Date.now() }]);
+    setCart([...cart, { ...product, cartId: Date.now() }]);
   };
 
+  const removeFromCart = (cartId) => {
+    setCart(cart.filter(item => item.cartId !== cartId));
+  };
+
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const cartTotal = cart.reduce((total, item) => total + item.price, 0);
+
   return (
-    <div className="sneaker-store">
+    <div className="ecommerce-store">
       <nav className="navbar">
         <div className="nav-container">
-          <h1 className="logo">SNEAKER ELITE</h1>
+          <h1 className="logo">${config.name}</h1>
           <ul className="nav-menu">
             <li><a href="#home" onClick={() => setActiveSection('home')}>Home</a></li>
             <li><a href="#products" onClick={() => setActiveSection('products')}>Products</a></li>
             <li><a href="#about" onClick={() => setActiveSection('about')}>About</a></li>
             <li><a href="#contact" onClick={() => setActiveSection('contact')}>Contact</a></li>
-            <li className="cart-icon">
-              Cart ({cart.length})
+            <li className="cart-icon" onClick={() => setActiveSection('cart')}>
+              Cart ({cart.length}) - $\{cartTotal.toFixed(2)}
             </li>
           </ul>
         </div>
@@ -312,21 +320,19 @@ function App() {
         <section className="hero-section">
           <div className="hero-content">
             <div className="hero-text">
-              <h1 className="hero-title">Step Into Excellence</h1>
-              <p className="hero-subtitle">Discover premium sneakers that define your style and elevate your game</p>
+              <h1 className="hero-title">Discover Premium Products</h1>
+              <p className="hero-subtitle">Shop the latest trends with unmatched quality and style</p>
               <div className="hero-buttons">
                 <button className="btn-primary" onClick={() => setActiveSection('products')}>
-                  Shop Collection
+                  Shop Now
                 </button>
                 <button className="btn-secondary">
-                  Watch Story
+                  Learn More
                 </button>
               </div>
             </div>
             <div className="hero-image">
-              <div className="sneaker-showcase">
-                <div className="featured-sneaker"></div>
-              </div>
+              <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop" alt="Shopping" />
             </div>
           </div>
         </section>
@@ -335,12 +341,21 @@ function App() {
       {activeSection === 'products' && (
         <section className="products-section">
           <div className="container">
-            <h2 className="section-title">Premium Collection</h2>
+            <h2 className="section-title">Our Products</h2>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
             <div className="product-grid">
-              {products.map(product => (
+              {filteredProducts.map(product => (
                 <div key={product.id} className="product-card">
                   <div className="product-image">
-                    <div className="product-placeholder"></div>
+                    <img src={product.image} alt={product.name} />
                   </div>
                   <div className="product-info">
                     <span className="product-category">{product.category}</span>
@@ -360,14 +375,44 @@ function App() {
         </section>
       )}
 
+      {activeSection === 'cart' && (
+        <section className="cart-section">
+          <div className="container">
+            <h2 className="section-title">Shopping Cart</h2>
+            {cart.length === 0 ? (
+              <p className="empty-cart">Your cart is empty</p>
+            ) : (
+              <div className="cart-items">
+                {cart.map(item => (
+                  <div key={item.cartId} className="cart-item">
+                    <img src={item.image} alt={item.name} />
+                    <div className="item-details">
+                      <h4>{item.name}</h4>
+                      <p>$\{item.price}</p>
+                    </div>
+                    <button onClick={() => removeFromCart(item.cartId)}>Remove</button>
+                  </div>
+                ))}
+                <div className="cart-total">
+                  <h3>Total: $\{cartTotal.toFixed(2)}</h3>
+                  <button className="checkout-btn">Proceed to Checkout</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {activeSection === 'about' && (
         <section className="about-section">
           <div className="container">
-            <h2 className="section-title">About Sneaker Elite</h2>
-            <p className="about-text">
-              We are passionate about bringing you the finest sneakers from around the world. 
-              Our curated collection features premium brands and exclusive designs.
-            </p>
+            <h2 className="section-title">About Us</h2>
+            <div className="about-content">
+              <img src="https://images.unsplash.com/photo-1560472355-536de3962603?w=800&h=600&fit=crop" alt="About us" />
+              <div className="about-text">
+                <p>We are passionate about bringing you the finest products with exceptional quality and unmatched customer service.</p>
+              </div>
+            </div>
           </div>
         </section>
       )}
@@ -375,11 +420,11 @@ function App() {
       {activeSection === 'contact' && (
         <section className="contact-section">
           <div className="container">
-            <h2 className="section-title">Get In Touch</h2>
+            <h2 className="section-title">Contact Us</h2>
             <form className="contact-form">
-              <input type="text" placeholder="Your Name" className="form-input" />
-              <input type="email" placeholder="Your Email" className="form-input" />
-              <textarea placeholder="Your Message" className="form-textarea"></textarea>
+              <input type="text" placeholder="Your Name" className="form-input" required />
+              <input type="email" placeholder="Your Email" className="form-input" required />
+              <textarea placeholder="Your Message" className="form-textarea" required></textarea>
               <button type="submit" className="btn-primary">Send Message</button>
             </form>
           </div>
@@ -654,23 +699,7 @@ root.render(
 }
 
 function generateModernCSS(config: any): string {
-  const { type } = config;
-  
-  if (type === 'ecommerce') {
-    return generateEcommerceCSS();
-  } else if (type === 'calculator') {
-    return generateCalculatorCSS();
-  } else if (type === 'todo') {
-    return generateTodoCSS();
-  } else if (type === 'weather') {
-    return generateWeatherCSS();
-  }
-  
-  return generateBusinessCSS(config);
-}
-
-function generateCalculatorCSS(): string {
-  return `/* Modern Calculator Styles */
+  return `/* Modern Dark Theme CSS */
 * {
   margin: 0;
   padding: 0;
@@ -679,144 +708,423 @@ function generateCalculatorCSS(): string {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+  color: #ffffff;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Navigation */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 1000;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-menu a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.nav-menu a:hover {
+  color: #4ecdc4;
+}
+
+.cart-icon {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-weight: 600;
+  color: #ffffff !important;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.cart-icon:hover {
+  transform: translateY(-2px);
+}
+
+/* Hero Section */
+.hero-section {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
+  padding-top: 80px;
 }
 
-.calculator-container {
-  padding: 20px;
+.hero-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
 }
 
-.calculator {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.calculator-header h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2rem;
+.hero-title {
+  font-size: 3.5rem;
   font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(45deg, #ffffff, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.calculator-display {
-  background: #1a1a1a;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
 }
 
-.display-screen {
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
   color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(78, 205, 196, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(78, 205, 196, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #4ecdc4;
+  border: 2px solid #4ecdc4;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: #4ecdc4;
+  color: #0a0a0a;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(78, 205, 196, 0.2);
+}
+
+/* Sections */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-title {
   font-size: 2.5rem;
-  font-weight: 300;
-  text-align: right;
-  min-height: 60px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 3rem;
+  background: linear-gradient(45deg, #ffffff, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.products-section,
+.cart-section,
+.about-section,
+.contact-section {
+  padding: 6rem 0;
+  min-height: 100vh;
+}
+
+/* Search */
+.search-container {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.search-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  padding: 1rem 2rem;
+  color: #ffffff;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 400px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.2);
+}
+
+/* Product Grid */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.product-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+}
+
+.product-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 60px rgba(78, 205, 196, 0.2);
+}
+
+.product-image {
+  height: 250px;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.1);
+}
+
+.product-info {
+  padding: 1.5rem;
+}
+
+.product-category {
+  color: #4ecdc4;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.product-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+  color: #ffffff;
+}
+
+.product-price {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #4ecdc4;
+  margin-bottom: 1rem;
+}
+
+.add-to-cart-btn {
+  width: 100%;
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(78, 205, 196, 0.3);
+}
+
+/* Cart */
+.cart-items {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(20px);
+}
+
+.cart-item {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  word-break: break-all;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.calculator-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
+.cart-item img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
-.btn {
-  border: none;
-  border-radius: 15px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+.item-details {
+  flex: 1;
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-number {
-  background: #f8f9fa;
-  color: #333;
-}
-
-.btn-number:hover {
-  background: #e9ecef;
-}
-
-.btn-operation {
-  background: #667eea;
-  color: white;
-}
-
-.btn-operation:hover {
-  background: #5a6fd8;
-}
-
-.btn-clear {
+.cart-item button {
   background: #ff6b6b;
   color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.btn-clear:hover {
-  background: #ff5252;
+.cart-total {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btn-equals {
-  background: #51cf66;
+.checkout-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
   color: white;
-  grid-row: span 2;
-  display: flex;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.empty-cart {
+  text-align: center;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 4rem 0;
+}
+
+/* About Section */
+.about-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
   align-items: center;
-  justify-content: center;
 }
 
-.btn-equals:hover {
-  background: #40c057;
+.about-content img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 20px;
 }
 
-.btn-zero {
-  grid-column: span 2;
+.about-text {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.8;
 }
 
-.btn-plus {
-  grid-row: span 2;
+/* Contact Form */
+.contact-form {
+  max-width: 600px;
+  margin: 0 auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-@media (max-width: 480px) {
-  .calculator {
-    margin: 20px;
-    padding: 20px;
+.form-input,
+.form-textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  color: #ffffff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 20px rgba(78, 205, 196, 0.2);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-content,
+  .about-content {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
   
-  .btn {
-    padding: 15px;
-    font-size: 1.2rem;
+  .hero-title {
+    font-size: 2.5rem;
   }
   
-  .display-screen {
-    font-size: 2rem;
+  .nav-menu {
+    gap: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cart-item {
+    flex-direction: column;
+    text-align: center;
   }
 }`;
 }
@@ -1193,24 +1501,22 @@ body {
 .hero-buttons {
   display: flex;
   gap: 1rem;
+  justify-content: center;
 }
 
 .btn-primary {
-  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
   color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 50px;
   font-weight: 600;
-  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.2);
+  transition: transform 0.3s ease;
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.3);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
@@ -1220,7 +1526,6 @@ body {
   padding: 1rem 2rem;
   border-radius: 50px;
   font-weight: 600;
-  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -1503,6 +1808,7 @@ body {
   background: linear-gradient(45deg, #ffffff, #4ecdc4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .hero-subtitle {
@@ -1525,11 +1831,13 @@ body {
   border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(78, 205, 196, 0.2);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
+  box-shadow: 0 15px 40px rgba(78, 205, 196, 0.3);
 }
 
 .btn-secondary {

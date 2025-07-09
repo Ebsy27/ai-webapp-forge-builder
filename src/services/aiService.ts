@@ -10,6 +10,11 @@ export interface GeneratedCode {
   [filename: string]: { code: string };
 }
 
+// Type guard to check if an object has the expected FileContent structure
+function isFileContent(obj: unknown): obj is { code: string } {
+  return typeof obj === 'object' && obj !== null && 'code' in obj && typeof (obj as any).code === 'string';
+}
+
 // Enhanced API call with better error handling and retry logic
 async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string> {
   try {
@@ -38,8 +43,8 @@ async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string>
             content: enhancedPrompt
           }
         ],
-        temperature: 0.3, // Reduced for more consistent output
-        max_tokens: 6000, // Increased for more detailed responses
+        temperature: 0.3,
+        max_tokens: 6000,
         top_p: 0.9,
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
@@ -62,8 +67,7 @@ async function callGroqAPI(userMessage: string, retryCount = 0): Promise<string>
   } catch (error) {
     console.error(`❌ Enhanced GROQ API call failed (attempt ${retryCount + 1}):`, error);
     
-    // Retry logic for network errors
-    if (retryCount < 2 && (error.message.includes('network') || error.message.includes('timeout'))) {
+    if (retryCount < 2 && (error instanceof Error && (error.message.includes('network') || error.message.includes('timeout')))) {
       console.log('🔄 Retrying GROQ API call...');
       await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
       return callGroqAPI(userMessage, retryCount + 1);
@@ -104,7 +108,6 @@ function parseCodeResponse(response: string): GeneratedCode {
     
     // Fix template literal issues - replace backticks with proper JSON strings
     cleanedResponse = cleanedResponse.replace(/`([^`]*)`/g, (match, content) => {
-      // Escape quotes and newlines in template literals
       const escapedContent = content
         .replace(/\\/g, '\\\\')
         .replace(/"/g, '\\"')
@@ -125,23 +128,23 @@ function parseCodeResponse(response: string): GeneratedCode {
     } catch (jsonError) {
       console.error('❌ JSON validation failed:', jsonError);
       console.error('Invalid JSON segment:', cleanedResponse.substring(0, 1000));
-      throw new Error(`Invalid JSON structure: ${jsonError.message}`);
+      throw new Error(`Invalid JSON structure: ${jsonError instanceof Error ? jsonError.message : 'Unknown error'}`);
     }
     
     const parsedCode = JSON.parse(cleanedResponse);
     
     // Validate required files
     const requiredFiles = ['/src/App.js', '/src/index.js', '/src/App.css', '/public/index.html', '/package.json'];
-    const missingFiles = requiredFiles.filter(file => !parsedCode[file] || !parsedCode[file].code);
+    const missingFiles = requiredFiles.filter(file => !parsedCode[file] || !isFileContent(parsedCode[file]));
     
     if (missingFiles.length > 0) {
       console.log('⚠️ Missing required files:', missingFiles);
       throw new Error(`Missing required files: ${missingFiles.join(', ')}`);
     }
     
-    // Validate code content
+    // Validate code content with proper type checking
     Object.entries(parsedCode).forEach(([filepath, fileContent]) => {
-      if (!fileContent || typeof fileContent.code !== 'string' || fileContent.code.trim().length === 0) {
+      if (!isFileContent(fileContent) || fileContent.code.trim().length === 0) {
         throw new Error(`Invalid or empty code content for file: ${filepath}`);
       }
     });

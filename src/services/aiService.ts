@@ -12,12 +12,17 @@ export interface Usage {
 export type { GeneratedCode };
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const LOCAL_LLM_API_URL = 'http://127.0.0.1:1234/v1/chat/completions';
 
-// Hardcoded API key - replace with your actual Groq API key
-const HARDCODED_API_KEY = 'gsk_your_api_key_here'; // Replace this with your actual API key
+// Your provided API keys
+const GROQ_API_KEY = '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';
 
-// Remove hardcoded models - let backend handle model selection
-const getAvailableModel = async (apiKey: string): Promise<string> => {
+// Load balancing: 70% Groq, 30% Local LLM
+const shouldUseGroq = (): boolean => {
+  return Math.random() < 0.7; // 70% chance for Groq
+};
+
+const getAvailableGroqModel = async (apiKey: string): Promise<string> => {
   try {
     const response = await fetch('https://api.groq.com/openai/v1/models', {
       headers: {
@@ -45,7 +50,7 @@ const getAvailableModel = async (apiKey: string): Promise<string> => {
     for (const preferred of preferredModels) {
       const model = availableModels.find((m: any) => m.id === preferred);
       if (model) {
-        console.log(`Using model: ${preferred}`);
+        console.log(`Using Groq model: ${preferred}`);
         return preferred;
       }
     }
@@ -53,16 +58,134 @@ const getAvailableModel = async (apiKey: string): Promise<string> => {
     // Fallback to first available model
     if (availableModels.length > 0) {
       const fallbackModel = availableModels[0].id;
-      console.log(`Using fallback model: ${fallbackModel}`);
+      console.log(`Using Groq fallback model: ${fallbackModel}`);
       return fallbackModel;
     }
     
-    throw new Error('No available models found');
+    throw new Error('No available Groq models found');
   } catch (error) {
-    console.error('Error fetching models:', error);
+    console.error('Error fetching Groq models:', error);
     // Ultimate fallback - try a basic model that should exist
     return 'llama-3.1-8b-instant';
   }
+};
+
+const generateWithGroq = async (prompt: string, requirements?: WebsiteRequirements): Promise<GeneratedCode> => {
+  const modelToUse = await getAvailableGroqModel(GROQ_API_KEY);
+  const enhancedPrompt = generateEnhancedPrompt(prompt, requirements);
+  
+  console.log('Using Groq API...');
+  console.log('Groq model:', modelToUse);
+
+  const response = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      model: modelToUse,
+      messages: [
+        {
+          role: 'system',
+          content: ENHANCED_SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: enhancedPrompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 8000,
+      top_p: 0.9,
+      stream: false
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Groq API Error Response:', errorText);
+    
+    let errorMessage = `Groq API request failed with status ${response.status}`;
+    
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      }
+    } catch (e) {
+      errorMessage = errorText || errorMessage;
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  
+  if (!data.choices?.[0]?.message?.content) {
+    console.error('Invalid Groq API response structure:', data);
+    throw new Error('Invalid response structure from Groq API');
+  }
+
+  return data.choices[0].message.content.trim();
+};
+
+const generateWithLocalLLM = async (prompt: string, requirements?: WebsiteRequirements): Promise<GeneratedCode> => {
+  const enhancedPrompt = generateEnhancedPrompt(prompt, requirements);
+  
+  console.log('Using Local LLM API...');
+
+  const response = await fetch(LOCAL_LLM_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      messages: [
+        {
+          role: 'system',
+          content: ENHANCED_SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: enhancedPrompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 8000,
+      top_p: 0.9,
+      stream: false
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Local LLM API Error Response:', errorText);
+    
+    let errorMessage = `Local LLM API request failed with status ${response.status}`;
+    
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorMessage = errorData.error.message;
+      }
+    } catch (e) {
+      errorMessage = errorText || errorMessage;
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  
+  if (!data.choices?.[0]?.message?.content) {
+    console.error('Invalid Local LLM API response structure:', data);
+    throw new Error('Invalid response structure from Local LLM API');
+  }
+
+  return data.choices[0].message.content.trim();
 };
 
 export const generateWebsite = async (
@@ -70,80 +193,26 @@ export const generateWebsite = async (
   apiKey?: string,
   requirements?: WebsiteRequirements
 ): Promise<GeneratedCode> => {
-  // Use provided API key or hardcoded fallback
-  const effectiveApiKey = apiKey || HARDCODED_API_KEY;
-  
-  if (!effectiveApiKey?.trim() || effectiveApiKey === 'gsk_your_api_key_here') {
-    throw new Error('Please replace HARDCODED_API_KEY in aiService.ts with your actual Groq API key.');
-  }
-
   try {
-    // Get available model dynamically
-    const modelToUse = await getAvailableModel(effectiveApiKey);
+    let content: string;
     
-    const enhancedPrompt = generateEnhancedPrompt(prompt, requirements);
-    
-    console.log('Sending request to Groq API...');
-    console.log('Using model:', modelToUse);
-    console.log('Prompt length:', enhancedPrompt.length);
-
-    const response = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${effectiveApiKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        model: modelToUse,
-        messages: [
-          {
-            role: 'system',
-            content: ENHANCED_SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: enhancedPrompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 8000,
-        top_p: 0.9,
-        stream: false
-      }),
-    });
-
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API Error Response:', errorText);
-      
-      let errorMessage = `API request failed with status ${response.status}`;
-      
+    // Load balancing: 70% Groq, 30% Local LLM
+    if (shouldUseGroq()) {
       try {
-        const errorData = JSON.parse(errorText);
-        if (errorData.error?.message) {
-          errorMessage = errorData.error.message;
-        }
-      } catch (e) {
-        // Use the raw error text if it's not JSON
-        errorMessage = errorText || errorMessage;
+        content = await generateWithGroq(prompt, requirements);
+      } catch (groqError) {
+        console.warn('Groq failed, falling back to Local LLM:', groqError);
+        content = await generateWithLocalLLM(prompt, requirements);
       }
-      
-      throw new Error(errorMessage);
+    } else {
+      try {
+        content = await generateWithLocalLLM(prompt, requirements);
+      } catch (localError) {
+        console.warn('Local LLM failed, falling back to Groq:', localError);
+        content = await generateWithGroq(prompt, requirements);
+      }
     }
 
-    const data = await response.json();
-    console.log('API Response received');
-
-    if (!data.choices?.[0]?.message?.content) {
-      console.error('Invalid API response structure:', data);
-      throw new Error('Invalid response structure from API');
-    }
-
-    const content = data.choices[0].message.content.trim();
     console.log('Raw AI response length:', content.length);
     console.log('Raw AI response preview:', content.substring(0, 500));
 

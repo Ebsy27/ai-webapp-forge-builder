@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from '../components/ChatInterface';
@@ -6,31 +5,26 @@ import CodeEditor from '../components/CodeEditor';
 import PreviewPane from '../components/PreviewPane';
 import Header from '../components/Header';
 import { generateWebsite, GeneratedCode } from '../services/aiService';
-import PromptSuggestions from '../components/enhanced/PromptSuggestions';
-import FeedbackSystem from '../components/enhanced/FeedbackSystem';
 
 const Index = () => {
   const [generatedCode, setGeneratedCode] = useState<GeneratedCode>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [feedbackData, setFeedbackData] = useState<any[]>([]);
 
   const handleCodeGeneration = async (userMessage: string, files?: FileList) => {
-    console.log('🚀 Starting enhanced code generation process...');
+    console.log('🚀 Starting code generation process...');
     setIsGenerating(true);
-    setShowSuggestions(false);
 
     try {
       const newCode = await generateWebsite(userMessage);
-      console.log('✅ Enhanced code generation successful, updating state...');
+      console.log('✅ Code generation successful, updating state...');
       console.log('Generated files:', Object.keys(newCode));
       
       setGeneratedCode(newCode);
       setHasGeneratedCode(true);
       
     } catch (error) {
-      console.error('❌ Enhanced code generation failed:', error);
+      console.error('❌ Code generation failed:', error);
       
       const errorFallback: GeneratedCode = {
         '/src/App.js': { 
@@ -138,23 +132,10 @@ root.render(<App />);`
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setShowSuggestions(false);
-    handleCodeGeneration(suggestion);
-  };
-
-  const handleFeedbackSubmit = (feedback: any) => {
-    console.log('📊 Feedback received:', feedback);
-    setFeedbackData(prev => [...prev, feedback]);
-    
-    // Here you could send feedback to analytics service
-    // trackFeedback(feedback);
-  };
-
   const transformCodeForEditor = (code: GeneratedCode): Record<string, string> => {
     const transformed: Record<string, string> = {};
     Object.entries(code).forEach(([filepath, fileContent]) => {
-      if (fileContent && typeof fileContent === 'object' && 'code' in fileContent) {
+      if (fileContent && fileContent.code) {
         transformed[filepath] = fileContent.code;
       }
     });
@@ -165,34 +146,31 @@ root.render(<App />);`
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <Header />
       
-      {/* Enhanced Hero Section */}
+      {/* Hero Section */}
       <div className="relative overflow-hidden bg-white border-b border-slate-200">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/50 to-indigo-50/50"></div>
         <div className="relative max-w-7xl mx-auto px-6 py-16">
           <div className="text-center">
             <h1 className="text-4xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-              Build Professional Apps with
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"> Enhanced AI</span>
+              Build Apps with
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"> AI</span>
             </h1>
             <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed">
               Transform your ideas into production-ready web applications with our advanced AI-powered platform. 
-              Generate modern, responsive websites with dark themes, accessibility features, and premium design.
+              Simply describe what you want to build, and watch it come to life.
             </p>
             <div className="flex flex-wrap gap-3 justify-center mb-8">
               <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
-                🌙 Modern Dark Themes
+                ⚡ Instant Generation
               </div>
               <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
-                ♿ Accessibility Built-in
+                🎨 Modern Design
               </div>
               <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
-                🎨 Premium Design
+                📱 Responsive
               </div>
               <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
                 🚀 Production Ready
-              </div>
-              <div className="px-4 py-2 bg-white rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-sm">
-                📱 Fully Responsive
               </div>
             </div>
           </div>
@@ -207,7 +185,7 @@ root.render(<App />);`
                 value="chat" 
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600 hover:text-slate-900"
               >
-                💬 Enhanced Chat & Generate
+                💬 Chat & Generate
               </TabsTrigger>
               <TabsTrigger 
                 value="code" 
@@ -221,12 +199,6 @@ root.render(<App />);`
               >
                 👁️ Live Preview
               </TabsTrigger>
-              <TabsTrigger 
-                value="feedback" 
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm text-slate-600 hover:text-slate-900"
-              >
-                ⭐ Feedback
-              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -237,12 +209,6 @@ root.render(<App />);`
                 isGenerating={isGenerating}
               />
             </div>
-            
-            {showSuggestions && (
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                <PromptSuggestions onSuggestionClick={handleSuggestionClick} />
-              </div>
-            )}
           </TabsContent>
           
           <TabsContent value="code" className="space-y-6">
@@ -256,50 +222,36 @@ root.render(<App />);`
               <PreviewPane code={generatedCode} hasGenerated={hasGeneratedCode} />
             </div>
           </TabsContent>
-          
-          <TabsContent value="feedback" className="space-y-6">
-            <FeedbackSystem 
-              onFeedbackSubmit={handleFeedbackSubmit}
-              hasGeneratedCode={hasGeneratedCode}
-            />
-          </TabsContent>
         </Tabs>
       </div>
 
-      {/* Enhanced Features Section */}
+      {/* Features Section */}
       <div className="bg-slate-50 border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-16">
           <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">
-            Next-Generation AI Web Development
+            Powerful Features for Modern Development
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🌙</span>
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🤖</span>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">Dark Theme First</h3>
-              <p className="text-slate-600">Every website features elegant dark themes with sophisticated color palettes and modern aesthetics.</p>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">AI-Powered Generation</h3>
+              <p className="text-slate-600">Advanced AI understands your requirements and generates production-ready code instantly.</p>
             </div>
             <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
               <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">♿</span>
+                <span className="text-2xl">⚡</span>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">Accessibility Built-in</h3>
-              <p className="text-slate-600">WCAG 2.1 AA compliance with keyboard navigation, screen readers, and proper contrast ratios.</p>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Lightning Fast</h3>
+              <p className="text-slate-600">Generate complete web applications in seconds, not hours or days.</p>
             </div>
             <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🚀</span>
+              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🎨</span>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">Production Ready</h3>
-              <p className="text-slate-600">Clean, optimized code with SEO, performance optimization, and security best practices included.</p>
-            </div>
-            <div className="text-center p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🎯</span>
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">Quality Assured</h3>
-              <p className="text-slate-600">Every generated website is automatically quality-checked and enhanced for maximum performance.</p>
+              <h3 className="text-xl font-semibold text-slate-900 mb-2">Modern Design</h3>
+              <p className="text-slate-600">Every generated app features modern, responsive design with professional UI components.</p>
             </div>
           </div>
         </div>

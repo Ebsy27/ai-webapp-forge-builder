@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ChatInterface from '../components/ChatInterface';
@@ -153,7 +154,7 @@ root.render(<App />);`
   const transformCodeForEditor = (code: GeneratedCode): Record<string, string> => {
     const transformed: Record<string, string> = {};
     Object.entries(code).forEach(([filepath, fileContent]) => {
-      if (fileContent && fileContent.code) {
+      if (fileContent && typeof fileContent === 'object' && 'code' in fileContent) {
         transformed[filepath] = fileContent.code;
       }
     });

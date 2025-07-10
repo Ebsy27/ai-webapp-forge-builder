@@ -1,4 +1,5 @@
-import { FileStructure, WebsiteRequirements } from "@/types";
+
+import { FileStructure, WebsiteRequirements, GeneratedCode } from "../types";
 import { ENHANCED_SYSTEM_PROMPT, generateEnhancedPrompt } from "./enhanced/promptTemplates";
 
 export interface Usage {
@@ -6,6 +7,9 @@ export interface Usage {
   completion_tokens: number;
   total_tokens: number;
 }
+
+// Export the GeneratedCode type for use in other files
+export type { GeneratedCode };
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -60,16 +64,19 @@ const getAvailableModel = async (apiKey: string): Promise<string> => {
 
 export const generateWebsite = async (
   prompt: string,
-  apiKey: string,
+  apiKey?: string,
   requirements?: WebsiteRequirements
-): Promise<{ files: FileStructure; usage?: any }> => {
-  if (!apiKey?.trim()) {
-    throw new Error('API key is required');
+): Promise<GeneratedCode> => {
+  // Use environment variable or default if no API key provided
+  const effectiveApiKey = apiKey || import.meta.env.VITE_GROQ_API_KEY;
+  
+  if (!effectiveApiKey?.trim()) {
+    throw new Error('API key is required. Please set VITE_GROQ_API_KEY environment variable or provide an API key.');
   }
 
   try {
     // Get available model dynamically
-    const modelToUse = await getAvailableModel(apiKey);
+    const modelToUse = await getAvailableModel(effectiveApiKey);
     
     const enhancedPrompt = generateEnhancedPrompt(prompt, requirements);
     
@@ -80,7 +87,7 @@ export const generateWebsite = async (
     const response = await fetch(GROQ_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${effectiveApiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
@@ -147,10 +154,7 @@ export const generateWebsite = async (
     // Validate the structure
     const files = validateAndCleanFiles(cleanedContent);
     
-    return {
-      files,
-      usage: data.usage
-    };
+    return files;
 
   } catch (error) {
     console.error('Enhanced website generation error:', error);

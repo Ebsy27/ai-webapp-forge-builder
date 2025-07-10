@@ -20,6 +20,8 @@ export interface WebsiteRequirements {
   sections?: string[];
   colors?: string;
   branding?: string;
+  websiteType?: string;
+  keyFeatures?: string[];
 }
 
 export interface Usage {

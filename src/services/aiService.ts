@@ -13,6 +13,9 @@ export type { GeneratedCode };
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+// Hardcoded API key - replace with your actual Groq API key
+const HARDCODED_API_KEY = 'gsk_your_api_key_here'; // Replace this with your actual API key
+
 // Remove hardcoded models - let backend handle model selection
 const getAvailableModel = async (apiKey: string): Promise<string> => {
   try {
@@ -67,11 +70,11 @@ export const generateWebsite = async (
   apiKey?: string,
   requirements?: WebsiteRequirements
 ): Promise<GeneratedCode> => {
-  // Use environment variable or default if no API key provided
-  const effectiveApiKey = apiKey || import.meta.env.VITE_GROQ_API_KEY;
+  // Use provided API key or hardcoded fallback
+  const effectiveApiKey = apiKey || HARDCODED_API_KEY;
   
-  if (!effectiveApiKey?.trim()) {
-    throw new Error('API key is required. Please set VITE_GROQ_API_KEY environment variable or provide an API key.');
+  if (!effectiveApiKey?.trim() || effectiveApiKey === 'gsk_your_api_key_here') {
+    throw new Error('Please replace HARDCODED_API_KEY in aiService.ts with your actual Groq API key.');
   }
 
   try {

@@ -1,16 +1,4 @@
-
-export interface WebsiteRequirements {
-  industry: string;
-  purpose: string;
-  features: string[];
-  style: string;
-  audience: string;
-  sections: string[];
-  colors?: string;
-  branding?: string;
-  websiteType: string;
-  keyFeatures: string[];
-}
+import { WebsiteRequirements } from "../../types";
 
 export const ENHANCED_SYSTEM_PROMPT = `You are an elite AI web developer specializing in creating production-ready, modern websites with exceptional design and functionality.
 
@@ -66,7 +54,7 @@ CORRECT: "code": "const html = <div>Content</div>;"`;
 export const generateEnhancedPrompt = (userInput: string, requirements?: WebsiteRequirements): string => {
   const analysis = analyzeUserInput(userInput);
   
-  const websiteImages = getRelevantImages(analysis.websiteType);
+  const websiteImages = getRelevantImages(analysis.websiteType || 'business');
   
   const analysisPrompt = `
 WEBSITE GENERATION REQUEST: "${userInput}"
@@ -77,9 +65,9 @@ You MUST generate EXACTLY this type of website, not any other type.
 ANALYZED REQUIREMENTS:
 - Website Type: ${analysis.websiteType}
 - Industry: ${analysis.industry}
-- Key Features: ${analysis.keyFeatures.join(', ')}
+- Key Features: ${analysis.keyFeatures?.join(', ')}
 - Target Audience: ${analysis.audience}
-- Required Sections: ${analysis.sections.join(', ')}
+- Required Sections: ${analysis.sections?.join(', ')}
 - Style: ${analysis.style}
 
 MANDATORY IMPLEMENTATION REQUIREMENTS:
@@ -119,7 +107,7 @@ MANDATORY IMPLEMENTATION REQUIREMENTS:
    - Optimized touch interactions
 
 6. SPECIFIC WEBSITE TYPE REQUIREMENTS:
-${getWebsiteTypeRequirements(analysis.websiteType)}
+${getWebsiteTypeRequirements(analysis.websiteType || 'business')}
 
 CRITICAL OUTPUT RULES:
 - Return ONLY the JSON object

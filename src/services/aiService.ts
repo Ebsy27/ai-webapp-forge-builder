@@ -87,42 +87,36 @@ async function callGroqAPI(userMessage: string): Promise<string> {
           },
           {
             role: 'user',
-            content: `AGISOL Smart Website Generator Request: "${userMessage}"
+            content: `AGISOL SMART GENERATOR - Create a UNIQUE website for: "${userMessage}"
 
-STEP 1 - ANALYZE USER REQUEST:
-- Extract purpose, target audience, and special features mentioned
-- Identify business type (restaurant, portfolio, clinic, shop, etc.)
-- Determine required functionality and interactive features
+🎯 MANDATORY REQUIREMENTS:
+1. ANALYZE the user's request and identify the specific type of website they want
+2. SELECT a DIFFERENT template each time - never repeat the same design
+3. GENERATE completely UNIQUE content - no generic "Modern Business" text
+4. CREATE industry-specific features and sections
 
-STEP 2 - SELECT UNIQUE TEMPLATE:
-Choose ONE template from your 12+ available options based on the analysis:
-- Don't repeat the same template - vary your selections
-- Match template to user's specific industry/purpose
-- Consider the business type and target audience
+📋 TEMPLATE SELECTION GUIDE:
+- Restaurant/Food → Use restaurant template with menu, locations
+- Portfolio/Creative → Use portfolio template with galleries, projects  
+- Healthcare/Medical → Use medical template with services, appointments
+- E-commerce/Shop → Use shop template with products, cart
+- Calculator/Math → Use calculator app template with working buttons
+- Todo/Task → Use productivity app template with task management
+- Fitness/Gym → Use fitness template with classes, trainers
+- Real Estate → Use property template with listings, search
+- Education → Use academic template with courses, enrollment
+- Nonprofit → Use charity template with donations, volunteering
 
-STEP 3 - GENERATE CUSTOM CONTENT:
-- Create unique, business-specific text content (NO repetition from previous sites)
-- Generate relevant page titles and navigation menus
-- Tailor all content to the user's specific industry and purpose
-- Include appropriate sections for the business type
+🚀 CONTENT CREATION RULES:
+- Extract the EXACT business name/purpose from user input
+- Write SPECIFIC content for that industry (not generic business text)
+- Create relevant page sections for the business type
+- Include appropriate call-to-actions and features
+- Use industry-appropriate terminology and language
 
-STEP 4 - ADD INTERACTIVE FEATURES:
-Suggest and implement relevant features such as:
-- Contact forms for service businesses
-- Booking systems for appointments
-- Product galleries for e-commerce
-- Portfolio showcases for creative professionals
-- Calculator functionality for utility apps
+⚠️ CRITICAL: Do NOT use generic "Modern Business" content. Make it specific to what the user actually wants!
 
-STEP 5 - IMPLEMENT PROFESSIONAL DESIGN:
-- Use modern, responsive design patterns
-- Apply industry-appropriate color schemes
-- Include contemporary typography and animations
-- Ensure mobile-first responsive design
-
-Make the website EXACTLY match what the user is asking for. Create something unique and tailored to their specific needs.
-
-Return valid JSON only - no markdown formatting, no code blocks, no explanations.`
+Generate completely unique JSON response:`
           }
         ],
         temperature: 0.7,
@@ -1631,25 +1625,60 @@ function App() {
 export default App;`;
 }
 
-// Main API function
+// Smart load balancing: 70% GROQ, 30% Local LLM
 export async function generateWebsite(userMessage: string): Promise<GeneratedCode> {
   try {
-    console.log('🌟 Starting modern website generation process...');
+    console.log('🌟 Starting AGISOL smart website generation...');
     
-    // Try GROQ API first
-    const groqResponse = await callGroqAPI(userMessage);
+    // Smart load balancing with randomization
+    const useGroqFirst = Math.random() < 0.7; // 70% chance for GROQ
     
-    try {
-      // Parse the response
-      const parsedCode = parseCodeResponse(groqResponse);
-      console.log('✅ Successfully generated modern website via GROQ');
-      return parsedCode;
-    } catch (parseError) {
-      console.log('⚠️ GROQ response parsing failed, creating intelligent fallback');
-      return createIntelligentFallback(userMessage);
+    if (useGroqFirst) {
+      try {
+        console.log('📡 Using GROQ API (70% probability)');
+        const groqResponse = await callGroqAPI(userMessage);
+        const parsedCode = parseCodeResponse(groqResponse);
+        
+        // Try to enhance with Local LLM (30% chance)
+        if (Math.random() < 0.3) {
+          console.log('🔧 Enhancing with Local LLM');
+          const enhancedResponse = await callLocalLLM(JSON.stringify(parsedCode), userMessage);
+          try {
+            const enhancedCode = parseCodeResponse(enhancedResponse);
+            console.log('✅ Enhanced website generated successfully');
+            return enhancedCode;
+          } catch {
+            console.log('⚠️ Enhancement failed, using GROQ result');
+            return parsedCode;
+          }
+        }
+        
+        console.log('✅ GROQ website generated successfully');
+        return parsedCode;
+      } catch (error) {
+        console.log('⚠️ GROQ failed, trying Local LLM fallback');
+        return await tryLocalLLMGeneration(userMessage);
+      }
+    } else {
+      console.log('🏠 Using Local LLM first (30% probability)');
+      return await tryLocalLLMGeneration(userMessage);
     }
   } catch (error) {
-    console.error('❌ GROQ API failed, creating intelligent fallback:', error);
+    console.error('❌ All generation methods failed, using intelligent fallback:', error);
+    return createIntelligentFallback(userMessage);
+  }
+}
+
+async function tryLocalLLMGeneration(userMessage: string): Promise<GeneratedCode> {
+  try {
+    // Create a base template first
+    const baseTemplate = createIntelligentFallback(userMessage);
+    const localResponse = await callLocalLLM(JSON.stringify(baseTemplate), userMessage);
+    const parsedCode = parseCodeResponse(localResponse);
+    console.log('✅ Local LLM website generated successfully');
+    return parsedCode;
+  } catch (error) {
+    console.log('⚠️ Local LLM failed, using intelligent fallback');
     return createIntelligentFallback(userMessage);
   }
 }

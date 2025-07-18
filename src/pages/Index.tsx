@@ -155,8 +155,8 @@ root.render(<App />);`
                 <span className="text-white font-bold text-sm">A</span>
               </div>
               <div>
-                <h2 className="text-white font-semibold">New Project</h2>
-                <p className="text-gray-400 text-sm">Chat with AGISOL to build your app</p>
+                <h2 className="text-white font-semibold">AGISOL</h2>
+                <p className="text-gray-400 text-sm">Chat with AI to build your app</p>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
-// API Configuration - Please replace with your valid Groq API key
+// API Configuration - Updated with new Groq API key
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 const LOCAL_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions';
 
 export interface GeneratedCode {
@@ -18,18 +18,26 @@ ANALYSIS PROCESS:
 5. Suggest relevant interactive features for the business type
 
 AVAILABLE TEMPLATES (Select ONE based on user needs):
-1. MODERN_BUSINESS - Clean corporate design with hero sections
-2. CREATIVE_PORTFOLIO - Artistic showcase with gallery layouts  
-3. RESTAURANT_DINING - Food industry with menu displays
-4. HEALTHCARE_MEDICAL - Professional medical practice layout
-5. ECOMMERCE_SHOP - Product showcase with shopping features
-6. TECH_STARTUP - Modern SaaS/tech company design
-7. FITNESS_GYM - Sports/wellness focused layout
-8. EDUCATION_ACADEMY - Learning platform design
-9. REAL_ESTATE - Property showcase layout
-10. NONPROFIT_CHARITY - Community-focused design
-11. CALCULATOR_APP - Functional calculator application
-12. TODO_PRODUCTIVITY - Task management application
+1. MODERN_BUSINESS - Clean corporate design with glassmorphism and gradients
+2. CREATIVE_PORTFOLIO - Artistic showcase with parallax scrolling and galleries  
+3. RESTAURANT_DINING - Food industry with interactive menus and booking
+4. HEALTHCARE_MEDICAL - Professional medical layout with appointment systems
+5. ECOMMERCE_SHOP - Product showcase with cart and payment integration
+6. TECH_STARTUP - Modern SaaS design with pricing tiers and features
+7. FITNESS_GYM - Sports/wellness with class schedules and trainer profiles
+8. EDUCATION_ACADEMY - Learning platform with course catalogs and progress tracking
+9. REAL_ESTATE - Property showcase with search filters and virtual tours
+10. NONPROFIT_CHARITY - Community-focused with donation systems and volunteer signup
+11. CALCULATOR_APP - Functional calculator with scientific operations
+12. TODO_PRODUCTIVITY - Task management with priorities and categories
+13. TRAVEL_AGENCY - Travel booking with destination galleries and itineraries
+14. PHOTOGRAPHY_STUDIO - Image-focused layout with lightbox galleries
+15. MUSIC_ARTIST - Artist portfolio with music player and event listings
+16. LAW_FIRM - Professional legal services with consultation booking
+17. BEAUTY_SALON - Salon services with appointment booking and gallery
+18. CONSTRUCTION_COMPANY - Portfolio of projects with service descriptions
+19. CONSULTING_FIRM - Professional services with case studies and expertise
+20. FASHION_BRAND - E-commerce fashion with lookbooks and style guides
 
 CONTENT GENERATION RULES:
 - Generate UNIQUE text content for each website (no repetition)
@@ -39,12 +47,16 @@ CONTENT GENERATION RULES:
 - Add appropriate interactive features (contact forms, booking, etc.)
 
 DESIGN REQUIREMENTS:
-- Modern, responsive design with CSS Grid/Flexbox
-- Professional color schemes matching the industry
-- Contemporary typography (Inter, Poppins, Montserrat)
-- Smooth animations and micro-interactions
-- Mobile-first responsive design
-- Glassmorphism effects and modern gradients
+- Ultra-modern responsive design with CSS Grid/Flexbox
+- Dynamic color schemes with custom gradients matching industry
+- Premium typography (Inter, SF Pro, Poppins, Montserrat, Urbanist)
+- Advanced animations: parallax, morphing, fade transitions
+- Mobile-first responsive with touch gestures
+- Glassmorphism, neumorphism, and gradient effects
+- Dark/light mode support with smooth transitions
+- Micro-interactions and hover effects
+- CSS custom properties for theming
+- Modern layout techniques: CSS subgrid, container queries
 
 JSON STRUCTURE REQUIRED:
 {

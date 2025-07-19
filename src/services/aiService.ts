@@ -1,4 +1,4 @@
-// API Configuration - updated with new key
+// API Configuration - Please replace with your valid Groq API key
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = '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';
 const LOCAL_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions';

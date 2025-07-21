@@ -83,29 +83,24 @@ Return ONLY the enhanced JSON object with the same structure as the input.`;
 async function callGroqAPI(userMessage: string): Promise<string> {
   try {
     console.log('🚀 Calling GROQ API for dynamic website generation:', userMessage);
+    console.log('🔑 Using API Key (first 20 chars):', GROQ_API_KEY.substring(0, 20) + '...');
+    console.log('🌐 API Endpoint:', GROQ_API_ENDPOINT);
     
     // Ensure the API key is present
     if (!GROQ_API_KEY || GROQ_API_KEY.trim() === '') {
       throw new Error('Groq API key is not configured');
     }
     
-    const response = await fetch(GROQ_API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-70b-versatile',
-        messages: [
-          {
-            role: 'system',
-            content: GROQ_SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: `Create a UNIQUE website for: "${userMessage}"
+    const requestBody = {
+      model: 'llama-3.1-70b-versatile',
+      messages: [
+        {
+          role: 'system',
+          content: GROQ_SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: `Create a UNIQUE website for: "${userMessage}"
 
 RETURN ONLY VALID JSON with this exact structure:
 {
@@ -117,36 +112,62 @@ RETURN ONLY VALID JSON with this exact structure:
 }
 
 Make each website completely different with unique content, colors, and features.`
-          }
-        ],
-        temperature: 0.9,
-        max_tokens: 4000,
-        stream: false
-      }),
+        }
+      ],
+      temperature: 0.9,
+      max_tokens: 4000,
+      stream: false
+    };
+    
+    console.log('📤 Request body prepared, making fetch call...');
+    console.log('📤 Request size:', JSON.stringify(requestBody).length, 'characters');
+    
+    const response = await fetch(GROQ_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     });
+
+    console.log('📥 Response received. Status:', response.status, response.statusText);
+    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ GROQ API Error:', response.status, response.statusText, errorText);
+      console.error('❌ GROQ API Error Details:');
+      console.error('Status:', response.status);
+      console.error('Status Text:', response.statusText);
+      console.error('Error Response:', errorText);
       throw new Error(`GROQ API error: ${response.status} - ${response.statusText}: ${errorText}`);
     }
 
     const data = await response.json();
     console.log('✅ GROQ API response received successfully');
-    console.log('Response data:', JSON.stringify(data, null, 2));
+    console.log('📊 Response structure check:');
+    console.log('- Has choices:', !!data.choices);
+    console.log('- Choices length:', data.choices?.length);
+    console.log('- Has first choice:', !!data.choices?.[0]);
+    console.log('- Has message:', !!data.choices?.[0]?.message);
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid response structure:', data);
+      console.error('❌ Invalid response structure:', JSON.stringify(data, null, 2));
       throw new Error('Invalid response structure from Groq API');
     }
     
     const content = data.choices[0].message.content;
-    console.log('GROQ response content length:', content.length);
-    console.log('GROQ response first 500 chars:', content.substring(0, 500));
+    console.log('✅ GROQ response content received');
+    console.log('📊 Content length:', content.length);
+    console.log('📋 Content preview (first 200 chars):', content.substring(0, 200));
     
     return content;
   } catch (error) {
-    console.error('❌ GROQ API call failed:', error);
+    console.error('❌ GROQ API call failed with error:', error);
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('🌐 Network error - check internet connection and GROQ API availability');
+    }
     throw error;
   }
 }
@@ -275,8 +296,23 @@ function parseCodeResponse(response: string): GeneratedCode {
 function createIntelligentFallback(userMessage: string): GeneratedCode {
   console.log('🎨 Creating intelligent fallback website for:', userMessage);
   
-  // Analyze user requirements
+  // Analyze user requirements with enhanced detection
   let websiteConfig = analyzeRequirements(userMessage);
+  
+  // Add randomization to ensure different designs each time
+  const designVariations = ['modern', 'elegant', 'professional', 'creative', 'minimal'];
+  const colorSchemes = ['blue', 'purple', 'green', 'orange', 'pink', 'teal'];
+  
+  websiteConfig.variation = designVariations[Math.floor(Math.random() * designVariations.length)];
+  websiteConfig.colorScheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
+  websiteConfig.uniqueId = Date.now(); // Ensure uniqueness
+  
+  console.log('🎯 Generated config:', {
+    type: websiteConfig.type,
+    industry: websiteConfig.industry,
+    variation: websiteConfig.variation,
+    colorScheme: websiteConfig.colorScheme
+  });
   
   return {
     '/src/App.js': { code: generateModernWebsite(websiteConfig) },
@@ -290,14 +326,18 @@ function createIntelligentFallback(userMessage: string): GeneratedCode {
 function analyzeRequirements(userMessage: string) {
   const lowerMessage = userMessage.toLowerCase();
   
-  // Website type detection with better calculator detection
+  // Website type detection with enhanced detection
   let type = 'business';
   let sections = ['hero', 'about', 'contact'];
   let theme = 'modern';
   let industry = 'general';
   
-  // Priority detection for specific applications
-  if (lowerMessage.includes('calculator') || lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('arithmetic')) {
+  // Enhanced detection for specific types
+  if (lowerMessage.includes('gym') || lowerMessage.includes('fitness') || lowerMessage.includes('workout') || lowerMessage.includes('training')) {
+    type = 'gym';
+    sections = ['hero', 'classes', 'trainers', 'membership', 'contact'];
+    industry = 'fitness';
+  } else if (lowerMessage.includes('calculator') || lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('arithmetic')) {
     type = 'calculator';
     sections = ['calculator'];
     industry = 'utility';
@@ -313,15 +353,15 @@ function analyzeRequirements(userMessage: string) {
     type = 'portfolio';
     sections = ['hero', 'about', 'gallery', 'skills', 'contact'];
     industry = 'creative';
-  } else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food')) {
+  } else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('cafe') || lowerMessage.includes('dining')) {
     type = 'restaurant';
     sections = ['hero', 'menu', 'about', 'location', 'contact'];
     industry = 'food';
-  } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic') || lowerMessage.includes('medical')) {
+  } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic') || lowerMessage.includes('medical') || lowerMessage.includes('doctor')) {
     type = 'healthcare';
     sections = ['hero', 'services', 'doctors', 'appointments', 'contact'];
     industry = 'healthcare';
-  } else if (lowerMessage.includes('e-commerce') || lowerMessage.includes('shop') || lowerMessage.includes('store')) {
+  } else if (lowerMessage.includes('e-commerce') || lowerMessage.includes('shop') || lowerMessage.includes('store') || lowerMessage.includes('shopping')) {
     type = 'ecommerce';
     sections = ['hero', 'products', 'about', 'cart', 'contact'];
     industry = 'retail';
@@ -329,12 +369,21 @@ function analyzeRequirements(userMessage: string) {
     type = 'landing';
     sections = ['hero', 'features', 'testimonials', 'cta'];
     industry = 'marketing';
+  } else if (lowerMessage.includes('law') || lowerMessage.includes('legal') || lowerMessage.includes('attorney')) {
+    type = 'law';
+    sections = ['hero', 'services', 'attorneys', 'testimonials', 'contact'];
+    industry = 'legal';
+  } else if (lowerMessage.includes('beauty') || lowerMessage.includes('salon') || lowerMessage.includes('spa')) {
+    type = 'beauty';
+    sections = ['hero', 'services', 'gallery', 'booking', 'contact'];
+    industry = 'beauty';
   }
   
   // Theme detection
   if (lowerMessage.includes('dark')) theme = 'dark';
   if (lowerMessage.includes('minimal')) theme = 'minimal';
   if (lowerMessage.includes('modern')) theme = 'modern';
+  if (lowerMessage.includes('elegant')) theme = 'elegant';
   
   return {
     type,
@@ -342,22 +391,31 @@ function analyzeRequirements(userMessage: string) {
     theme,
     industry,
     name: extractWebsiteName(userMessage),
-    description: userMessage
+    description: userMessage,
+    variation: 'modern', // Will be overridden in createIntelligentFallback
+    colorScheme: 'blue', // Will be overridden in createIntelligentFallback
+    uniqueId: 0 // Will be overridden in createIntelligentFallback
   };
 }
 
 function extractWebsiteName(userMessage: string): string {
   const lowerMessage = userMessage.toLowerCase();
   
+  // Enhanced name extraction
+  if (lowerMessage.includes('gym') || lowerMessage.includes('fitness')) return 'FitLife Gym';
   if (lowerMessage.includes('calculator')) return 'Modern Calculator';
-  if (lowerMessage.includes('todo')) return 'Task Manager';
-  if (lowerMessage.includes('weather')) return 'Weather App';
+  if (lowerMessage.includes('todo')) return 'Task Manager Pro';
+  if (lowerMessage.includes('weather')) return 'Weather Station';
+  if (lowerMessage.includes('restaurant')) return 'Gourmet Restaurant';
+  if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic')) return 'Health Plus Clinic';
+  if (lowerMessage.includes('law') || lowerMessage.includes('legal')) return 'Legal Solutions';
+  if (lowerMessage.includes('beauty') || lowerMessage.includes('salon')) return 'Beauty Studio';
   
   const businessMatches = userMessage.match(/for\s+([A-Za-z\s]+)(?:\s+website|\s+site|\s+page)/i);
   if (businessMatches) return businessMatches[1].trim();
   
-  const typeMatches = userMessage.match(/(portfolio|restaurant|clinic|shop|store|business|company)/i);
-  if (typeMatches) return `Modern ${typeMatches[1].charAt(0).toUpperCase() + typeMatches[1].slice(1)}`;
+  const typeMatches = userMessage.match(/(portfolio|restaurant|clinic|shop|store|business|company|gym|fitness)/i);
+  if (typeMatches) return `Premium ${typeMatches[1].charAt(0).toUpperCase() + typeMatches[1].slice(1)}`;
   
   return 'Modern Website';
 }
@@ -365,7 +423,11 @@ function extractWebsiteName(userMessage: string): string {
 function generateModernWebsite(config: any): string {
   const { type } = config;
   
-  if (type === 'calculator') {
+  console.log('🎨 Generating website type:', type);
+  
+  if (type === 'gym') {
+    return generateGymWebsite(config);
+  } else if (type === 'calculator') {
     return generateCalculatorWebsite(config);
   } else if (type === 'todo') {
     return generateTodoWebsite(config);
@@ -381,6 +443,10 @@ function generateModernWebsite(config: any): string {
     return generateEcommerceWebsite(config);
   } else if (type === 'landing') {
     return generateLandingWebsite(config);
+  } else if (type === 'law') {
+    return generateLawWebsite(config);
+  } else if (type === 'beauty') {
+    return generateBeautyWebsite(config);
   }
   
   return generateBusinessWebsite(config);
@@ -1658,46 +1724,220 @@ function App() {
 export default App;`;
 }
 
-// Smart load balancing: 70% GROQ, 30% Local LLM
+// Additional website generators for enhanced template variety
+function generateGymWebsite(config: any): string {
+  return `import React from 'react';
+
+function App() {
+  return (
+    <div className="gym-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home" className="nav-link">Home</a></li>
+            <li><a href="#classes" className="nav-link">Classes</a></li>
+            <li><a href="#trainers" className="nav-link">Trainers</a></li>
+            <li><a href="#membership" className="nav-link">Membership</a></li>
+            <li><a href="#contact" className="nav-link">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-background"></div>
+        <div className="hero-content">
+          <div className="hero-text">
+            <h1 className="hero-title">Transform Your Body, Transform Your Life</h1>
+            <p className="hero-subtitle">Join ${config.name} and achieve your fitness goals with our expert trainers</p>
+            <div className="hero-buttons">
+              <button className="btn-primary">Start Your Journey</button>
+              <button className="btn-secondary">View Classes</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="classes-section" id="classes">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Our Fitness Classes</h2>
+            <p className="section-subtitle">Diverse programs for every fitness level</p>
+          </div>
+          <div className="services-grid">
+            <div className="service-card">
+              <div className="service-icon">💪</div>
+              <h3>Strength Training</h3>
+              <p>Build muscle and increase power with our strength programs</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">🏃</div>
+              <h3>Cardio Classes</h3>
+              <p>High-energy workouts to boost your cardiovascular health</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">🧘</div>
+              <h3>Yoga & Flexibility</h3>
+              <p>Improve flexibility and find your inner balance</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateLawWebsite(config: any): string {
+  return `import React from 'react';
+
+function App() {
+  return (
+    <div className="law-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home" className="nav-link">Home</a></li>
+            <li><a href="#services" className="nav-link">Practice Areas</a></li>
+            <li><a href="#attorneys" className="nav-link">Attorneys</a></li>
+            <li><a href="#contact" className="nav-link">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-background"></div>
+        <div className="hero-content">
+          <div className="hero-text">
+            <h1 className="hero-title">Experienced Legal Representation</h1>
+            <p className="hero-subtitle">Protecting your rights with dedicated legal expertise and personalized service</p>
+            <div className="hero-buttons">
+              <button className="btn-primary">Free Consultation</button>
+              <button className="btn-secondary">Our Practice Areas</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Practice Areas</h2>
+            <p className="section-subtitle">Comprehensive legal services for your needs</p>
+          </div>
+          <div className="services-grid">
+            <div className="service-card">
+              <div className="service-icon">⚖️</div>
+              <h3>Civil Litigation</h3>
+              <p>Expert representation in complex civil matters</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">🏢</div>
+              <h3>Corporate Law</h3>
+              <p>Business formation, contracts, and corporate compliance</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">🏠</div>
+              <h3>Real Estate Law</h3>
+              <p>Property transactions and real estate disputes</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateBeautyWebsite(config: any): string {
+  return `import React from 'react';
+
+function App() {
+  return (
+    <div className="beauty-container">
+      <nav className="navbar">
+        <div className="nav-container">
+          <h2 className="logo">${config.name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home" className="nav-link">Home</a></li>
+            <li><a href="#services" className="nav-link">Services</a></li>
+            <li><a href="#gallery" className="nav-link">Gallery</a></li>
+            <li><a href="#booking" className="nav-link">Book Now</a></li>
+            <li><a href="#contact" className="nav-link">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="hero-section" id="home">
+        <div className="hero-background"></div>
+        <div className="hero-content">
+          <div className="hero-text">
+            <h1 className="hero-title">Enhance Your Natural Beauty</h1>
+            <p className="hero-subtitle">Premium beauty services in a luxurious, relaxing environment</p>
+            <div className="hero-buttons">
+              <button className="btn-primary">Book Appointment</button>
+              <button className="btn-secondary">View Services</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Our Beauty Services</h2>
+            <p className="section-subtitle">Professional treatments for every beauty need</p>
+          </div>
+          <div className="services-grid">
+            <div className="service-card">
+              <div className="service-icon">💄</div>
+              <h3>Makeup Services</h3>
+              <p>Professional makeup for special occasions and events</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">✨</div>
+              <h3>Skin Treatments</h3>
+              <p>Advanced facials and skincare treatments</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">💅</div>
+              <h3>Nail Services</h3>
+              <p>Manicures, pedicures, and nail art designs</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+// Main website generation function - Always try GROQ first
 export async function generateWebsite(userMessage: string): Promise<GeneratedCode> {
+  console.log('🌟 Starting AGISOL website generation for:', userMessage);
+  
+  // ALWAYS try GROQ first with proper error handling
   try {
-    console.log('🌟 Starting AGISOL smart website generation...');
+    console.log('🚀 Attempting GROQ API call...');
+    const groqResponse = await callGroqAPI(userMessage);
+    console.log('✅ GROQ API call successful, parsing response...');
     
-    // Smart load balancing with randomization
-    const useGroqFirst = Math.random() < 0.7; // 70% chance for GROQ
+    const parsedCode = parseCodeResponse(groqResponse);
+    console.log('✅ GROQ website generated successfully');
+    return parsedCode;
     
-    if (useGroqFirst) {
-      try {
-        console.log('📡 Using GROQ API (70% probability)');
-        const groqResponse = await callGroqAPI(userMessage);
-        const parsedCode = parseCodeResponse(groqResponse);
-        
-        // Try to enhance with Local LLM (30% chance)
-        if (Math.random() < 0.3) {
-          console.log('🔧 Enhancing with Local LLM');
-          const enhancedResponse = await callLocalLLM(JSON.stringify(parsedCode), userMessage);
-          try {
-            const enhancedCode = parseCodeResponse(enhancedResponse);
-            console.log('✅ Enhanced website generated successfully');
-            return enhancedCode;
-          } catch {
-            console.log('⚠️ Enhancement failed, using GROQ result');
-            return parsedCode;
-          }
-        }
-        
-        console.log('✅ GROQ website generated successfully');
-        return parsedCode;
-      } catch (error) {
-        console.log('⚠️ GROQ failed, trying Local LLM fallback');
-        return await tryLocalLLMGeneration(userMessage);
-      }
-    } else {
-      console.log('🏠 Using Local LLM first (30% probability)');
-      return await tryLocalLLMGeneration(userMessage);
-    }
-  } catch (error) {
-    console.error('❌ All generation methods failed, using intelligent fallback:', error);
+  } catch (groqError) {
+    console.error('❌ GROQ API failed:', groqError);
+    console.log('🔄 Falling back to intelligent template generation...');
+    
+    // Enhanced fallback with unique template selection
     return createIntelligentFallback(userMessage);
   }
 }

@@ -97,7 +97,7 @@ async function callGroqAPI(userMessage: string): Promise<string> {
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama-3.1-70b-versatile',
         messages: [
           {
             role: 'system',
@@ -105,51 +105,21 @@ async function callGroqAPI(userMessage: string): Promise<string> {
           },
           {
             role: 'user',
-            content: `AGISOL DYNAMIC GENERATOR - Create a UNIQUE website for: "${userMessage}"
+            content: `Create a UNIQUE website for: "${userMessage}"
 
-🎯 MANDATORY REQUIREMENTS:
-1. ANALYZE the user's request and identify the specific type of website they want
-2. SELECT a DIFFERENT template each time - never repeat the same design
-3. GENERATE completely UNIQUE content - no generic "Modern Business" text
-4. CREATE industry-specific features and sections
-5. Use modern web technologies and design patterns
+RETURN ONLY VALID JSON with this exact structure:
+{
+  "/src/App.js": { "code": "React component code here" },
+  "/src/index.js": { "code": "React DOM render code" },
+  "/src/App.css": { "code": "CSS styling code" },
+  "/public/index.html": { "code": "HTML template" },
+  "/package.json": { "code": "Package.json content" }
+}
 
-📋 DYNAMIC TEMPLATE SELECTION:
-- Gym/Fitness → Use fitness template with class schedules, membership plans, trainer profiles
-- Restaurant/Food → Use restaurant template with menu, reservations, chef profiles
-- Portfolio/Creative → Use portfolio template with project galleries, testimonials
-- Healthcare/Medical → Use medical template with services, doctor bios, appointment booking
-- E-commerce/Shop → Use shop template with product catalog, shopping cart, checkout
-- Calculator/Math → Use calculator app template with scientific functions
-- Todo/Task → Use productivity app template with task management, categories
-- Real Estate → Use property template with listings, search filters, virtual tours
-- Education → Use academic template with courses, enrollment, student portal
-- Business/Corporate → Use business template with services, team, case studies
-- Fashion → Use fashion template with lookbooks, collections, style guides
-- Travel → Use travel template with destinations, booking, itineraries
-- Photography → Use photography template with galleries, services, packages
-- Music/Artist → Use music template with discography, events, media player
-- Law Firm → Use legal template with practice areas, attorney profiles
-- Beauty/Salon → Use beauty template with services, booking, gallery
-- Construction → Use construction template with projects, services, testimonials
-- Consulting → Use consulting template with expertise, case studies, contact
-- Technology → Use tech template with solutions, features, pricing
-- Nonprofit → Use charity template with missions, donations, volunteer signup
-
-🚀 CONTENT CREATION RULES:
-- Extract the EXACT business name/purpose from user input
-- Write SPECIFIC content for that industry (not generic business text)
-- Create relevant page sections for the business type
-- Include appropriate call-to-actions and features
-- Use industry-appropriate terminology and language
-- Implement modern UI patterns and interactions
-
-⚠️ CRITICAL: Return ONLY valid JSON - no markdown, no explanations, no code blocks!
-
-Generate completely unique website as JSON:`
+Make each website completely different with unique content, colors, and features.`
           }
         ],
-        temperature: 0.8,
+        temperature: 0.9,
         max_tokens: 4000,
         stream: false
       }),
@@ -158,17 +128,23 @@ Generate completely unique website as JSON:`
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ GROQ API Error:', response.status, response.statusText, errorText);
-      throw new Error(`GROQ API error: ${response.status} - ${response.statusText}`);
+      throw new Error(`GROQ API error: ${response.status} - ${response.statusText}: ${errorText}`);
     }
 
     const data = await response.json();
     console.log('✅ GROQ API response received successfully');
+    console.log('Response data:', JSON.stringify(data, null, 2));
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid response structure:', data);
       throw new Error('Invalid response structure from Groq API');
     }
     
-    return data.choices[0].message.content;
+    const content = data.choices[0].message.content;
+    console.log('GROQ response content length:', content.length);
+    console.log('GROQ response first 500 chars:', content.substring(0, 500));
+    
+    return content;
   } catch (error) {
     console.error('❌ GROQ API call failed:', error);
     throw error;

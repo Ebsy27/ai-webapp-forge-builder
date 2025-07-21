@@ -79,16 +79,22 @@ const LOCAL_LLM_SYSTEM_PROMPT = `You are a professional web development assistan
 
 Return ONLY the enhanced JSON object with the same structure as the input.`;
 
-// Call GROQ API with enhanced website generation
+// Call GROQ API with enhanced website generation and proper error handling
 async function callGroqAPI(userMessage: string): Promise<string> {
   try {
-    console.log('🚀 Calling GROQ API for modern website generation:', userMessage);
+    console.log('🚀 Calling GROQ API for dynamic website generation:', userMessage);
+    
+    // Ensure the API key is present
+    if (!GROQ_API_KEY || GROQ_API_KEY.trim() === '') {
+      throw new Error('Groq API key is not configured');
+    }
     
     const response = await fetch(GROQ_API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
         model: 'llama3-8b-8192',
@@ -99,25 +105,36 @@ async function callGroqAPI(userMessage: string): Promise<string> {
           },
           {
             role: 'user',
-            content: `AGISOL SMART GENERATOR - Create a UNIQUE website for: "${userMessage}"
+            content: `AGISOL DYNAMIC GENERATOR - Create a UNIQUE website for: "${userMessage}"
 
 🎯 MANDATORY REQUIREMENTS:
 1. ANALYZE the user's request and identify the specific type of website they want
 2. SELECT a DIFFERENT template each time - never repeat the same design
 3. GENERATE completely UNIQUE content - no generic "Modern Business" text
 4. CREATE industry-specific features and sections
+5. Use modern web technologies and design patterns
 
-📋 TEMPLATE SELECTION GUIDE:
-- Restaurant/Food → Use restaurant template with menu, locations
-- Portfolio/Creative → Use portfolio template with galleries, projects  
-- Healthcare/Medical → Use medical template with services, appointments
-- E-commerce/Shop → Use shop template with products, cart
-- Calculator/Math → Use calculator app template with working buttons
-- Todo/Task → Use productivity app template with task management
-- Fitness/Gym → Use fitness template with classes, trainers
-- Real Estate → Use property template with listings, search
-- Education → Use academic template with courses, enrollment
-- Nonprofit → Use charity template with donations, volunteering
+📋 DYNAMIC TEMPLATE SELECTION:
+- Gym/Fitness → Use fitness template with class schedules, membership plans, trainer profiles
+- Restaurant/Food → Use restaurant template with menu, reservations, chef profiles
+- Portfolio/Creative → Use portfolio template with project galleries, testimonials
+- Healthcare/Medical → Use medical template with services, doctor bios, appointment booking
+- E-commerce/Shop → Use shop template with product catalog, shopping cart, checkout
+- Calculator/Math → Use calculator app template with scientific functions
+- Todo/Task → Use productivity app template with task management, categories
+- Real Estate → Use property template with listings, search filters, virtual tours
+- Education → Use academic template with courses, enrollment, student portal
+- Business/Corporate → Use business template with services, team, case studies
+- Fashion → Use fashion template with lookbooks, collections, style guides
+- Travel → Use travel template with destinations, booking, itineraries
+- Photography → Use photography template with galleries, services, packages
+- Music/Artist → Use music template with discography, events, media player
+- Law Firm → Use legal template with practice areas, attorney profiles
+- Beauty/Salon → Use beauty template with services, booking, gallery
+- Construction → Use construction template with projects, services, testimonials
+- Consulting → Use consulting template with expertise, case studies, contact
+- Technology → Use tech template with solutions, features, pricing
+- Nonprofit → Use charity template with missions, donations, volunteer signup
 
 🚀 CONTENT CREATION RULES:
 - Extract the EXACT business name/purpose from user input
@@ -125,25 +142,32 @@ async function callGroqAPI(userMessage: string): Promise<string> {
 - Create relevant page sections for the business type
 - Include appropriate call-to-actions and features
 - Use industry-appropriate terminology and language
+- Implement modern UI patterns and interactions
 
-⚠️ CRITICAL: Do NOT use generic "Modern Business" content. Make it specific to what the user actually wants!
+⚠️ CRITICAL: Return ONLY valid JSON - no markdown, no explanations, no code blocks!
 
-Generate completely unique JSON response:`
+Generate completely unique website as JSON:`
           }
         ],
-        temperature: 0.7,
+        temperature: 0.8,
         max_tokens: 4000,
+        stream: false
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('GROQ API Error:', response.status, errorText);
-      throw new Error(`GROQ API error: ${response.status}`);
+      console.error('❌ GROQ API Error:', response.status, response.statusText, errorText);
+      throw new Error(`GROQ API error: ${response.status} - ${response.statusText}`);
     }
 
     const data = await response.json();
     console.log('✅ GROQ API response received successfully');
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response structure from Groq API');
+    }
+    
     return data.choices[0].message.content;
   } catch (error) {
     console.error('❌ GROQ API call failed:', error);
@@ -192,56 +216,77 @@ async function callLocalLLM(baseCode: string, userMessage: string): Promise<stri
   }
 }
 
-// Enhanced JSON parsing with better error handling
+// Enhanced JSON parsing with robust error handling
 function parseCodeResponse(response: string): GeneratedCode {
   try {
-    console.log('🔍 Parsing modern website response...');
+    console.log('🔍 Parsing dynamic website response...');
     console.log('Raw response length:', response.length);
     console.log('First 200 chars:', response.substring(0, 200));
     
     let cleanedResponse = response.trim();
     
-    // Remove markdown code blocks more aggressively
+    // More aggressive markdown cleanup
     cleanedResponse = cleanedResponse.replace(/```json\s*/gi, '');
     cleanedResponse = cleanedResponse.replace(/```javascript\s*/gi, '');
+    cleanedResponse = cleanedResponse.replace(/```html\s*/gi, '');
+    cleanedResponse = cleanedResponse.replace(/```css\s*/gi, '');
     cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
     cleanedResponse = cleanedResponse.replace(/^```.*$/gm, '');
     
-    // Remove any leading/trailing text that's not JSON
-    const firstBrace = cleanedResponse.indexOf('{');
-    const lastBrace = cleanedResponse.lastIndexOf('}');
+    // Remove explanatory text before and after JSON
+    cleanedResponse = cleanedResponse.replace(/^.*?(?=\{)/s, '');
+    cleanedResponse = cleanedResponse.replace(/}\s*.*$/s, '}');
     
-    if (firstBrace === -1 || lastBrace === -1) {
+    // Extract JSON object more precisely
+    let jsonStart = -1;
+    let braceCount = 0;
+    let jsonEnd = -1;
+    
+    for (let i = 0; i < cleanedResponse.length; i++) {
+      if (cleanedResponse[i] === '{') {
+        if (jsonStart === -1) jsonStart = i;
+        braceCount++;
+      } else if (cleanedResponse[i] === '}') {
+        braceCount--;
+        if (braceCount === 0 && jsonStart !== -1) {
+          jsonEnd = i;
+          break;
+        }
+      }
+    }
+    
+    if (jsonStart === -1 || jsonEnd === -1) {
       throw new Error('No valid JSON object found in response');
     }
     
-    cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
+    cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
     
-    // Fix common JSON issues
+    // Fix common JSON formatting issues
     cleanedResponse = cleanedResponse.replace(/'/g, '"');
     cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}');
     cleanedResponse = cleanedResponse.replace(/,\s*]/g, ']');
-    
-    // Fix escaped quotes in strings
-    cleanedResponse = cleanedResponse.replace(/\\"/g, '\\"');
-    
-    // Remove any invalid characters that might cause parsing issues
     cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+    
+    // Fix unescaped quotes in strings
+    cleanedResponse = cleanedResponse.replace(/"([^"]*)"(\s*:\s*)"([^"]*(?:\\.[^"]*)*)"(?=\s*[,}])/g, (match, key, colon, value) => {
+      const escapedValue = value.replace(/"/g, '\\"');
+      return `"${key}"${colon}"${escapedValue}"`;
+    });
     
     console.log('Cleaned response first 200 chars:', cleanedResponse.substring(0, 200));
     
     const parsedCode = JSON.parse(cleanedResponse);
     
-    // Validate required files
+    // Validate required files and structure
     const requiredFiles = ['/src/App.js', '/src/index.js', '/src/App.css', '/public/index.html', '/package.json'];
     const missingFiles = requiredFiles.filter(file => !parsedCode[file] || !parsedCode[file].code);
     
     if (missingFiles.length > 0) {
-      console.log('⚠️ Missing files, creating modern fallback');
+      console.log('⚠️ Missing required files, creating intelligent fallback');
       throw new Error(`Missing required files: ${missingFiles.join(', ')}`);
     }
     
-    console.log('✅ Successfully parsed modern website');
+    console.log('✅ Successfully parsed dynamic website');
     return parsedCode;
   } catch (error) {
     console.error('❌ Error parsing response:', error);

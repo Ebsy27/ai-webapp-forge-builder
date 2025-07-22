@@ -7,33 +7,53 @@ export interface GeneratedCode {
   [filename: string]: { code: string };
 }
 
-// Enhanced system prompt for React + Tailwind + Sandpack compatibility
-const GROQ_SYSTEM_PROMPT = `You are a senior React frontend developer working on modern web applications.
+// Enhanced system prompt for complete functional websites
+const GROQ_SYSTEM_PROMPT = `You are a senior React frontend developer building complete, production-ready web applications.
 
 IMPORTANT: You must return ONLY valid JSON in this exact format:
 {
-  "/src/App.js": { "code": "// React component code here" },
+  "/src/App.js": { "code": "// Complete React application with routing" },
   "/src/index.js": { "code": "// React DOM render code" },
-  "/src/App.css": { "code": "/* CSS styling code */" },
+  "/src/App.css": { "code": "/* Complete CSS styling */" },
   "/public/index.html": { "code": "<!-- HTML template -->" },
-  "/package.json": { "code": "// Package.json content" }
+  "/package.json": { "code": "// Package.json with all dependencies" }
 }
 
-Your task is to build production-ready landing pages in React using Tailwind CSS.
+Your task is to build a COMPLETE, FUNCTIONAL WEBSITE (not just a landing page) with multiple pages and full functionality.
 
-Requirements:
-- Use React functional components only
+CRITICAL REQUIREMENTS:
+- Create a multi-page React application with React Router
+- Include these functional pages: Home, About, Services/Products, Contact, and 1-2 additional relevant pages
+- Add interactive features: contact forms, image galleries, pricing tables, testimonials carousel
+- Use React hooks (useState, useEffect) for dynamic functionality
+- Include a functional navigation system with active page highlighting
+- Add animations, transitions, and interactive elements
+- Use modern React patterns and best practices
+- Make it fully responsive with mobile-first design
+- Include realistic content specific to the business type
+- Add loading states, form validation, and user feedback
+- Create reusable components and clean code structure
+
+DESIGN REQUIREMENTS:
 - Use Tailwind CSS for all styling (no inline CSS)
-- Include: Header with logo and nav, Hero section with CTA, Features/services section, About or testimonial block, Contact or footer section
-- Make it fully responsive
-- Use dummy images and placeholder text
-- Add subtle hover effects or animations
-- Return only valid JSX code that can be previewed in Sandpack
+- Create unique, modern designs with professional color schemes
+- Include icons, gradients, shadows, and modern UI elements
+- Add smooth animations and hover effects
+- Ensure accessibility and semantic HTML
+- Create visually distinct designs for each request
 
-Design variety: Use different layout structures like split hero, grid cards, one-page scroll, sidebar nav
-Visual styles: bold, minimalist, dark mode, vibrant, glassmorphism, corporate, creative
+FUNCTIONALITY TO INCLUDE:
+- Working contact forms with validation
+- Image carousels/galleries
+- Pricing comparison tables
+- Testimonials sections
+- FAQ accordions
+- Service/product listings
+- Interactive buttons and CTAs
+- Mobile-responsive navigation menu
+- Scroll animations and effects
 
-Always ensure each website is visually distinct with unique colors, layouts, and content.`;
+Always create COMPLETE, FUNCTIONAL WEBSITES ready for production deployment.`;
 
 // Call Groq API with simplified request format
 async function callGroqAPI(userMessage: string): Promise<string> {
@@ -52,26 +72,46 @@ async function callGroqAPI(userMessage: string): Promise<string> {
     const randomStyle = designStyles[Math.floor(Math.random() * designStyles.length)];
     const randomLayout = layoutStyles[Math.floor(Math.random() * layoutStyles.length)];
     
-    const enhancedPrompt = `A user has submitted the following idea for a website: "${userMessage}"
+    const enhancedPrompt = `A user wants a complete website for: "${userMessage}"
 
-Your task is to build a production-ready landing page in React, using Tailwind CSS for styling.
+Build a COMPLETE, FUNCTIONAL MULTI-PAGE WEBSITE (not just a landing page) with full business functionality.
 
-Requirements:
-- Use React functional components only
-- Use Tailwind CSS for all styling (no inline CSS)
-- Design the layout using a ${randomLayout} structure with a ${randomStyle} visual style
-- Include:
-  - Header with logo and nav
-  - Hero section with a CTA
-  - Features/services section
-  - About or testimonial block
-  - Contact or footer section
-- Make it fully responsive
-- Use dummy images and placeholder text
-- Add subtle hover effects or animations
-- Return only the JSON object with valid React code
+CRITICAL REQUIREMENTS:
+- Create a complete React application with React Router for multiple pages
+- Design using ${randomLayout} structure with ${randomStyle} visual style
+- Include these FUNCTIONAL pages:
+  * Home page with hero, features, testimonials
+  * About page with company story, team, mission
+  * Services/Products page with detailed offerings
+  * Contact page with working forms and maps
+  * Gallery/Portfolio page (if relevant)
+  * Additional relevant pages for the business type
 
-Ensure it's valid React code that can be directly previewed in a Sandpack environment.`;
+FUNCTIONAL FEATURES TO IMPLEMENT:
+- Working contact forms with validation and success messages
+- Interactive image galleries/carousels
+- Pricing tables with comparison features
+- Testimonials carousel with auto-rotation
+- FAQ accordion sections
+- Service cards with hover effects and details
+- Mobile-responsive navigation with hamburger menu
+- Search functionality (if applicable)
+- Newsletter signup forms
+- Social media integration
+- Scroll-to-top functionality
+- Loading animations and transitions
+
+TECHNICAL REQUIREMENTS:
+- Use React functional components with hooks (useState, useEffect)
+- Implement React Router for page navigation
+- Use Tailwind CSS for responsive, modern styling
+- Add form validation and user feedback
+- Include interactive animations and transitions
+- Create reusable components
+- Add proper error handling
+- Ensure accessibility standards
+
+Make this a complete, production-ready website that a business could actually use. Return only the JSON object with complete React application code.`;
 
     const requestBody = {
       model: 'llama-3.1-70b-versatile',

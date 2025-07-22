@@ -7,8 +7,8 @@ export interface GeneratedCode {
   [filename: string]: { code: string };
 }
 
-// Simplified and effective system prompt for Groq
-const GROQ_SYSTEM_PROMPT = `You are a professional AI website builder that creates unique, complete websites.
+// Enhanced system prompt for React + Tailwind + Sandpack compatibility
+const GROQ_SYSTEM_PROMPT = `You are a senior React frontend developer working on modern web applications.
 
 IMPORTANT: You must return ONLY valid JSON in this exact format:
 {
@@ -19,21 +19,21 @@ IMPORTANT: You must return ONLY valid JSON in this exact format:
   "/package.json": { "code": "// Package.json content" }
 }
 
-For each user request:
-1. Analyze their business type and requirements
-2. Select a unique template style (modern, creative, minimal, corporate, etc.)
-3. Generate completely different layouts, colors, and content each time
-4. Create functional React components with proper styling
-5. Return ONLY the JSON object - no markdown, no explanations
+Your task is to build production-ready landing pages in React using Tailwind CSS.
 
-Make every website visually distinct with different:
-- Color schemes and gradients
-- Layout structures and sections
-- Typography and styling
-- Content and messaging
-- Interactive elements
+Requirements:
+- Use React functional components only
+- Use Tailwind CSS for all styling (no inline CSS)
+- Include: Header with logo and nav, Hero section with CTA, Features/services section, About or testimonial block, Contact or footer section
+- Make it fully responsive
+- Use dummy images and placeholder text
+- Add subtle hover effects or animations
+- Return only valid JSX code that can be previewed in Sandpack
 
-Always ensure the website matches the user's specific business needs.`;
+Design variety: Use different layout structures like split hero, grid cards, one-page scroll, sidebar nav
+Visual styles: bold, minimalist, dark mode, vibrant, glassmorphism, corporate, creative
+
+Always ensure each website is visually distinct with unique colors, layouts, and content.`;
 
 // Call Groq API with simplified request format
 async function callGroqAPI(userMessage: string): Promise<string> {
@@ -45,6 +45,34 @@ async function callGroqAPI(userMessage: string): Promise<string> {
       throw new Error('Groq API key is not configured');
     }
     
+    // Generate random design parameters for variety
+    const designStyles = ['bold', 'minimalist', 'dark mode', 'vibrant', 'glassmorphism', 'corporate', 'creative'];
+    const layoutStyles = ['split hero', 'grid cards', 'one-page scroll', 'sidebar nav', 'full-width sections'];
+    
+    const randomStyle = designStyles[Math.floor(Math.random() * designStyles.length)];
+    const randomLayout = layoutStyles[Math.floor(Math.random() * layoutStyles.length)];
+    
+    const enhancedPrompt = `A user has submitted the following idea for a website: "${userMessage}"
+
+Your task is to build a production-ready landing page in React, using Tailwind CSS for styling.
+
+Requirements:
+- Use React functional components only
+- Use Tailwind CSS for all styling (no inline CSS)
+- Design the layout using a ${randomLayout} structure with a ${randomStyle} visual style
+- Include:
+  - Header with logo and nav
+  - Hero section with a CTA
+  - Features/services section
+  - About or testimonial block
+  - Contact or footer section
+- Make it fully responsive
+- Use dummy images and placeholder text
+- Add subtle hover effects or animations
+- Return only the JSON object with valid React code
+
+Ensure it's valid React code that can be directly previewed in a Sandpack environment.`;
+
     const requestBody = {
       model: 'llama-3.1-70b-versatile',
       messages: [
@@ -54,10 +82,10 @@ async function callGroqAPI(userMessage: string): Promise<string> {
         },
         {
           role: 'user',
-          content: `Create a unique website for: "${userMessage}". Make it visually distinct from any previous designs. Return only the JSON object with the required file structure.`
+          content: enhancedPrompt
         }
       ],
-      temperature: 0.8,
+      temperature: 0.9,
       max_tokens: 4000,
       top_p: 0.9
     };

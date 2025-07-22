@@ -1,90 +1,44 @@
-// API Configuration - Updated with new Groq API key
+
+// API Configuration - Updated with working Groq API key
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_API_KEY = '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';
-const LOCAL_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions';
 
 export interface GeneratedCode {
   [filename: string]: { code: string };
 }
 
-// Smart Website Generator System Prompt
-const GROQ_SYSTEM_PROMPT = `You are AGISOL - a smart website generator that creates unique, professional websites based on user ideas. You analyze user requirements and select from 10+ distinct templates to create custom websites.
+// Simplified and effective system prompt for Groq
+const GROQ_SYSTEM_PROMPT = `You are a professional AI website builder that creates unique, complete websites.
 
-ANALYSIS PROCESS:
-1. Carefully understand the user's idea: purpose, target audience, features
-2. Extract key requirements: business type, industry, special features
-3. Select ONE unique template from your 10+ available templates
-4. Generate custom content genuinely tailored to the user's specific idea
-5. Suggest relevant interactive features for the business type
-
-AVAILABLE TEMPLATES (Select ONE based on user needs):
-1. MODERN_BUSINESS - Clean corporate design with glassmorphism and gradients
-2. CREATIVE_PORTFOLIO - Artistic showcase with parallax scrolling and galleries  
-3. RESTAURANT_DINING - Food industry with interactive menus and booking
-4. HEALTHCARE_MEDICAL - Professional medical layout with appointment systems
-5. ECOMMERCE_SHOP - Product showcase with cart and payment integration
-6. TECH_STARTUP - Modern SaaS design with pricing tiers and features
-7. FITNESS_GYM - Sports/wellness with class schedules and trainer profiles
-8. EDUCATION_ACADEMY - Learning platform with course catalogs and progress tracking
-9. REAL_ESTATE - Property showcase with search filters and virtual tours
-10. NONPROFIT_CHARITY - Community-focused with donation systems and volunteer signup
-11. CALCULATOR_APP - Functional calculator with scientific operations
-12. TODO_PRODUCTIVITY - Task management with priorities and categories
-13. TRAVEL_AGENCY - Travel booking with destination galleries and itineraries
-14. PHOTOGRAPHY_STUDIO - Image-focused layout with lightbox galleries
-15. MUSIC_ARTIST - Artist portfolio with music player and event listings
-16. LAW_FIRM - Professional legal services with consultation booking
-17. BEAUTY_SALON - Salon services with appointment booking and gallery
-18. CONSTRUCTION_COMPANY - Portfolio of projects with service descriptions
-19. CONSULTING_FIRM - Professional services with case studies and expertise
-20. FASHION_BRAND - E-commerce fashion with lookbooks and style guides
-
-CONTENT GENERATION RULES:
-- Generate UNIQUE text content for each website (no repetition)
-- Create business-specific page titles and menu options
-- Tailor all text to the user's specific industry/purpose
-- Include relevant sections based on business type
-- Add appropriate interactive features (contact forms, booking, etc.)
-
-DESIGN REQUIREMENTS:
-- Ultra-modern responsive design with CSS Grid/Flexbox
-- Dynamic color schemes with custom gradients matching industry
-- Premium typography (Inter, SF Pro, Poppins, Montserrat, Urbanist)
-- Advanced animations: parallax, morphing, fade transitions
-- Mobile-first responsive with touch gestures
-- Glassmorphism, neumorphism, and gradient effects
-- Dark/light mode support with smooth transitions
-- Micro-interactions and hover effects
-- CSS custom properties for theming
-- Modern layout techniques: CSS subgrid, container queries
-
-JSON STRUCTURE REQUIRED:
+IMPORTANT: You must return ONLY valid JSON in this exact format:
 {
-  "/src/App.js": { "code": "// Complete React application" },
-  "/src/index.js": { "code": "// React entry point" },
-  "/src/App.css": { "code": "/* Complete CSS styling */" },
+  "/src/App.js": { "code": "// React component code here" },
+  "/src/index.js": { "code": "// React DOM render code" },
+  "/src/App.css": { "code": "/* CSS styling code */" },
   "/public/index.html": { "code": "<!-- HTML template -->" },
-  "/package.json": { "code": "// Package configuration" }
+  "/package.json": { "code": "// Package.json content" }
 }
 
-CRITICAL: Return ONLY valid JSON - no markdown, no explanations, no code blocks.`;
+For each user request:
+1. Analyze their business type and requirements
+2. Select a unique template style (modern, creative, minimal, corporate, etc.)
+3. Generate completely different layouts, colors, and content each time
+4. Create functional React components with proper styling
+5. Return ONLY the JSON object - no markdown, no explanations
 
-const LOCAL_LLM_SYSTEM_PROMPT = `You are a professional web development assistant that enhances websites with advanced styling and modern features. You receive a base website code and improve it with:
+Make every website visually distinct with different:
+- Color schemes and gradients
+- Layout structures and sections
+- Typography and styling
+- Content and messaging
+- Interactive elements
 
-1. Advanced CSS animations and transitions
-2. Modern design patterns and layouts
-3. Enhanced user experience elements
-4. Professional color schemes and typography
-5. Responsive design optimizations
+Always ensure the website matches the user's specific business needs.`;
 
-Return ONLY the enhanced JSON object with the same structure as the input.`;
-
-// Call GROQ API with enhanced website generation and proper error handling
+// Call Groq API with simplified request format
 async function callGroqAPI(userMessage: string): Promise<string> {
   try {
-    console.log('🚀 Calling GROQ API for dynamic website generation:', userMessage);
-    console.log('🔑 Using API Key (first 20 chars):', GROQ_API_KEY.substring(0, 20) + '...');
-    console.log('🌐 API Endpoint:', GROQ_API_ENDPOINT);
+    console.log('🚀 Calling GROQ API for website generation:', userMessage);
     
     // Ensure the API key is present
     if (!GROQ_API_KEY || GROQ_API_KEY.trim() === '') {
@@ -100,157 +54,66 @@ async function callGroqAPI(userMessage: string): Promise<string> {
         },
         {
           role: 'user',
-          content: `Create a UNIQUE website for: "${userMessage}"
-
-RETURN ONLY VALID JSON with this exact structure:
-{
-  "/src/App.js": { "code": "React component code here" },
-  "/src/index.js": { "code": "React DOM render code" },
-  "/src/App.css": { "code": "CSS styling code" },
-  "/public/index.html": { "code": "HTML template" },
-  "/package.json": { "code": "Package.json content" }
-}
-
-Make each website completely different with unique content, colors, and features.`
+          content: `Create a unique website for: "${userMessage}". Make it visually distinct from any previous designs. Return only the JSON object with the required file structure.`
         }
       ],
-      temperature: 0.9,
+      temperature: 0.8,
       max_tokens: 4000,
-      stream: false
+      top_p: 0.9
     };
     
-    console.log('📤 Request body prepared, making fetch call...');
-    console.log('📤 Request size:', JSON.stringify(requestBody).length, 'characters');
+    console.log('📤 Making Groq API request...');
     
     const response = await fetch(GROQ_API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody),
     });
 
-    console.log('📥 Response received. Status:', response.status, response.statusText);
-    console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('📥 Groq response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ GROQ API Error Details:');
-      console.error('Status:', response.status);
-      console.error('Status Text:', response.statusText);
-      console.error('Error Response:', errorText);
-      throw new Error(`GROQ API error: ${response.status} - ${response.statusText}: ${errorText}`);
+      console.error('❌ GROQ API Error:', response.status, errorText);
+      throw new Error(`GROQ API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('✅ GROQ API response received successfully');
-    console.log('📊 Response structure check:');
-    console.log('- Has choices:', !!data.choices);
-    console.log('- Choices length:', data.choices?.length);
-    console.log('- Has first choice:', !!data.choices?.[0]);
-    console.log('- Has message:', !!data.choices?.[0]?.message);
+    console.log('✅ GROQ API response received');
     
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('❌ Invalid response structure:', JSON.stringify(data, null, 2));
+      console.error('❌ Invalid Groq response structure');
       throw new Error('Invalid response structure from Groq API');
     }
     
     const content = data.choices[0].message.content;
-    console.log('✅ GROQ response content received');
-    console.log('📊 Content length:', content.length);
-    console.log('📋 Content preview (first 200 chars):', content.substring(0, 200));
+    console.log('📋 Groq content length:', content.length);
     
     return content;
   } catch (error) {
-    console.error('❌ GROQ API call failed with error:', error);
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.error('🌐 Network error - check internet connection and GROQ API availability');
-    }
+    console.error('❌ GROQ API call failed:', error);
     throw error;
   }
 }
 
-// Call Local LLM API for enhancement
-async function callLocalLLM(baseCode: string, userMessage: string): Promise<string> {
-  try {
-    console.log('🔧 Calling Local LLM for professional enhancement...');
-    
-    const response = await fetch(LOCAL_LLM_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'local-model',
-        messages: [
-          {
-            role: 'system',
-            content: LOCAL_LLM_SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: `Enhance this professional website for "${userMessage}" with advanced styling and features: ${baseCode}`
-          }
-        ],
-        temperature: 0.6,
-        max_tokens: 3000,
-      }),
-    });
-
-    if (!response.ok) {
-      console.log('⚠️ Local LLM not available, using GROQ result');
-      return baseCode;
-    }
-
-    const data = await response.json();
-    console.log('✅ Local LLM enhancement completed');
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.log('⚠️ Local LLM failed, using GROQ result:', error);
-    return baseCode;
-  }
-}
-
-// Enhanced JSON parsing with robust error handling
+// Enhanced JSON parsing with better error handling
 function parseCodeResponse(response: string): GeneratedCode {
   try {
-    console.log('🔍 Parsing dynamic website response...');
-    console.log('Raw response length:', response.length);
-    console.log('First 200 chars:', response.substring(0, 200));
+    console.log('🔍 Parsing Groq response...');
     
     let cleanedResponse = response.trim();
     
-    // More aggressive markdown cleanup
+    // Remove markdown formatting
     cleanedResponse = cleanedResponse.replace(/```json\s*/gi, '');
-    cleanedResponse = cleanedResponse.replace(/```javascript\s*/gi, '');
-    cleanedResponse = cleanedResponse.replace(/```html\s*/gi, '');
-    cleanedResponse = cleanedResponse.replace(/```css\s*/gi, '');
     cleanedResponse = cleanedResponse.replace(/```\s*/g, '');
     cleanedResponse = cleanedResponse.replace(/^```.*$/gm, '');
     
-    // Remove explanatory text before and after JSON
-    cleanedResponse = cleanedResponse.replace(/^.*?(?=\{)/s, '');
-    cleanedResponse = cleanedResponse.replace(/}\s*.*$/s, '}');
-    
-    // Extract JSON object more precisely
-    let jsonStart = -1;
-    let braceCount = 0;
-    let jsonEnd = -1;
-    
-    for (let i = 0; i < cleanedResponse.length; i++) {
-      if (cleanedResponse[i] === '{') {
-        if (jsonStart === -1) jsonStart = i;
-        braceCount++;
-      } else if (cleanedResponse[i] === '}') {
-        braceCount--;
-        if (braceCount === 0 && jsonStart !== -1) {
-          jsonEnd = i;
-          break;
-        }
-      }
-    }
+    // Extract JSON object
+    const jsonStart = cleanedResponse.indexOf('{');
+    const jsonEnd = cleanedResponse.lastIndexOf('}');
     
     if (jsonStart === -1 || jsonEnd === -1) {
       throw new Error('No valid JSON object found in response');
@@ -258,439 +121,311 @@ function parseCodeResponse(response: string): GeneratedCode {
     
     cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
     
-    // Fix common JSON formatting issues
+    // Fix common JSON issues
     cleanedResponse = cleanedResponse.replace(/'/g, '"');
     cleanedResponse = cleanedResponse.replace(/,\s*}/g, '}');
-    cleanedResponse = cleanedResponse.replace(/,\s*]/g, ']');
-    cleanedResponse = cleanedResponse.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
     
-    // Fix unescaped quotes in strings
-    cleanedResponse = cleanedResponse.replace(/"([^"]*)"(\s*:\s*)"([^"]*(?:\\.[^"]*)*)"(?=\s*[,}])/g, (match, key, colon, value) => {
-      const escapedValue = value.replace(/"/g, '\\"');
-      return `"${key}"${colon}"${escapedValue}"`;
-    });
-    
-    console.log('Cleaned response first 200 chars:', cleanedResponse.substring(0, 200));
-    
+    console.log('🔧 Attempting to parse cleaned JSON...');
     const parsedCode = JSON.parse(cleanedResponse);
     
-    // Validate required files and structure
+    // Validate required files
     const requiredFiles = ['/src/App.js', '/src/index.js', '/src/App.css', '/public/index.html', '/package.json'];
     const missingFiles = requiredFiles.filter(file => !parsedCode[file] || !parsedCode[file].code);
     
     if (missingFiles.length > 0) {
-      console.log('⚠️ Missing required files, creating intelligent fallback');
+      console.log('⚠️ Missing files:', missingFiles);
       throw new Error(`Missing required files: ${missingFiles.join(', ')}`);
     }
     
-    console.log('✅ Successfully parsed dynamic website');
+    console.log('✅ Successfully parsed Groq response');
     return parsedCode;
   } catch (error) {
-    console.error('❌ Error parsing response:', error);
-    console.error('Response that failed to parse:', response.substring(0, 500));
+    console.error('❌ Error parsing Groq response:', error);
     throw error;
   }
 }
 
-// Create intelligent website fallback based on user requirements
+// Template varieties for better fallback diversity
+const TEMPLATE_STYLES = [
+  { name: 'Modern Gradient', colors: ['#667eea', '#764ba2'], style: 'modern' },
+  { name: 'Corporate Blue', colors: ['#2196F3', '#21CBF3'], style: 'corporate' },
+  { name: 'Creative Purple', colors: ['#8B5CF6', '#A78BFA'], style: 'creative' },
+  { name: 'Nature Green', colors: ['#10B981', '#34D399'], style: 'nature' },
+  { name: 'Sunset Orange', colors: ['#F59E0B', '#FBB042'], style: 'warm' },
+  { name: 'Ocean Teal', colors: ['#0891B2', '#06B6D4'], style: 'cool' },
+  { name: 'Royal Purple', colors: ['#7C3AED', '#A855F7'], style: 'luxury' },
+  { name: 'Fire Red', colors: ['#EF4444', '#F87171'], style: 'bold' },
+  { name: 'Forest Dark', colors: ['#059669', '#047857'], style: 'dark' },
+  { name: 'Sky Light', colors: ['#3B82F6', '#60A5FA'], style: 'light' }
+];
+
+const BUSINESS_TEMPLATES = {
+  gym: ['Modern Gradient', 'Fire Red', 'Forest Dark'],
+  healthcare: ['Corporate Blue', 'Ocean Teal', 'Sky Light'],
+  restaurant: ['Sunset Orange', 'Nature Green', 'Warm'],
+  business: ['Corporate Blue', 'Royal Purple', 'Modern Gradient'],
+  creative: ['Creative Purple', 'Fire Red', 'Bold'],
+  default: ['Modern Gradient', 'Corporate Blue', 'Creative Purple']
+};
+
+// Intelligent fallback with true randomization
 function createIntelligentFallback(userMessage: string): GeneratedCode {
-  console.log('🎨 Creating intelligent fallback website for:', userMessage);
+  console.log('🎨 Creating randomized fallback website for:', userMessage);
   
-  // Analyze user requirements with enhanced detection
-  let websiteConfig = analyzeRequirements(userMessage);
+  // Analyze business type
+  const businessType = detectBusinessType(userMessage);
   
-  // Add randomization to ensure different designs each time
-  const designVariations = ['modern', 'elegant', 'professional', 'creative', 'minimal'];
-  const colorSchemes = ['blue', 'purple', 'green', 'orange', 'pink', 'teal'];
+  // Get appropriate templates for this business type
+  const suitableTemplates = BUSINESS_TEMPLATES[businessType] || BUSINESS_TEMPLATES.default;
   
-  websiteConfig.variation = designVariations[Math.floor(Math.random() * designVariations.length)];
-  websiteConfig.colorScheme = colorSchemes[Math.floor(Math.random() * colorSchemes.length)];
-  websiteConfig.uniqueId = Date.now(); // Ensure uniqueness
+  // Add randomization to ensure different results
+  const randomTemplateIndex = Math.floor(Math.random() * suitableTemplates.length);
+  const selectedTemplateName = suitableTemplates[randomTemplateIndex];
+  const selectedTemplate = TEMPLATE_STYLES.find(t => t.name === selectedTemplateName) || TEMPLATE_STYLES[0];
   
-  console.log('🎯 Generated config:', {
+  // Add timestamp for uniqueness
+  const uniqueId = Date.now();
+  const randomSuffix = Math.floor(Math.random() * 1000);
+  
+  const websiteConfig = {
+    type: businessType,
+    template: selectedTemplate,
+    name: generateBusinessName(userMessage, businessType),
+    description: userMessage,
+    uniqueId: `${uniqueId}-${randomSuffix}`,
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('🎯 Generated unique config:', {
     type: websiteConfig.type,
-    industry: websiteConfig.industry,
-    variation: websiteConfig.variation,
-    colorScheme: websiteConfig.colorScheme
+    template: websiteConfig.template.name,
+    name: websiteConfig.name,
+    uniqueId: websiteConfig.uniqueId
   });
   
   return {
-    '/src/App.js': { code: generateModernWebsite(websiteConfig) },
+    '/src/App.js': { code: generateUniqueWebsite(websiteConfig) },
     '/src/index.js': { code: generateReactIndex() },
-    '/src/App.css': { code: generateModernCSS(websiteConfig) },
-    '/public/index.html': { code: generateModernHTML(websiteConfig) },
+    '/src/App.css': { code: generateUniqueCSS(websiteConfig) },
+    '/public/index.html': { code: generateUniqueHTML(websiteConfig) },
     '/package.json': { code: generatePackageJson(websiteConfig.name) }
   };
 }
 
-function analyzeRequirements(userMessage: string) {
+function detectBusinessType(userMessage: string): string {
   const lowerMessage = userMessage.toLowerCase();
   
-  // Website type detection with enhanced detection
-  let type = 'business';
-  let sections = ['hero', 'about', 'contact'];
-  let theme = 'modern';
-  let industry = 'general';
+  if (lowerMessage.includes('gym') || lowerMessage.includes('fitness') || lowerMessage.includes('workout')) return 'gym';
+  if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic') || lowerMessage.includes('medical')) return 'healthcare';
+  if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('cafe')) return 'restaurant';
+  if (lowerMessage.includes('creative') || lowerMessage.includes('design') || lowerMessage.includes('art')) return 'creative';
   
-  // Enhanced detection for specific types
-  if (lowerMessage.includes('gym') || lowerMessage.includes('fitness') || lowerMessage.includes('workout') || lowerMessage.includes('training')) {
-    type = 'gym';
-    sections = ['hero', 'classes', 'trainers', 'membership', 'contact'];
-    industry = 'fitness';
-  } else if (lowerMessage.includes('calculator') || lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('arithmetic')) {
-    type = 'calculator';
-    sections = ['calculator'];
-    industry = 'utility';
-  } else if (lowerMessage.includes('todo') || lowerMessage.includes('task') || lowerMessage.includes('list')) {
-    type = 'todo';
-    sections = ['todo'];
-    industry = 'productivity';
-  } else if (lowerMessage.includes('weather')) {
-    type = 'weather';
-    sections = ['weather'];
-    industry = 'utility';
-  } else if (lowerMessage.includes('portfolio')) {
-    type = 'portfolio';
-    sections = ['hero', 'about', 'gallery', 'skills', 'contact'];
-    industry = 'creative';
-  } else if (lowerMessage.includes('restaurant') || lowerMessage.includes('food') || lowerMessage.includes('cafe') || lowerMessage.includes('dining')) {
-    type = 'restaurant';
-    sections = ['hero', 'menu', 'about', 'location', 'contact'];
-    industry = 'food';
-  } else if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic') || lowerMessage.includes('medical') || lowerMessage.includes('doctor')) {
-    type = 'healthcare';
-    sections = ['hero', 'services', 'doctors', 'appointments', 'contact'];
-    industry = 'healthcare';
-  } else if (lowerMessage.includes('e-commerce') || lowerMessage.includes('shop') || lowerMessage.includes('store') || lowerMessage.includes('shopping')) {
-    type = 'ecommerce';
-    sections = ['hero', 'products', 'about', 'cart', 'contact'];
-    industry = 'retail';
-  } else if (lowerMessage.includes('landing')) {
-    type = 'landing';
-    sections = ['hero', 'features', 'testimonials', 'cta'];
-    industry = 'marketing';
-  } else if (lowerMessage.includes('law') || lowerMessage.includes('legal') || lowerMessage.includes('attorney')) {
-    type = 'law';
-    sections = ['hero', 'services', 'attorneys', 'testimonials', 'contact'];
-    industry = 'legal';
-  } else if (lowerMessage.includes('beauty') || lowerMessage.includes('salon') || lowerMessage.includes('spa')) {
-    type = 'beauty';
-    sections = ['hero', 'services', 'gallery', 'booking', 'contact'];
-    industry = 'beauty';
-  }
+  return 'business';
+}
+
+function generateBusinessName(userMessage: string, businessType: string): string {
+  const uniqueId = Math.floor(Math.random() * 1000);
   
-  // Theme detection
-  if (lowerMessage.includes('dark')) theme = 'dark';
-  if (lowerMessage.includes('minimal')) theme = 'minimal';
-  if (lowerMessage.includes('modern')) theme = 'modern';
-  if (lowerMessage.includes('elegant')) theme = 'elegant';
-  
-  return {
-    type,
-    sections,
-    theme,
-    industry,
-    name: extractWebsiteName(userMessage),
-    description: userMessage,
-    variation: 'modern', // Will be overridden in createIntelligentFallback
-    colorScheme: 'blue', // Will be overridden in createIntelligentFallback
-    uniqueId: 0 // Will be overridden in createIntelligentFallback
+  const nameVariations = {
+    gym: [`PowerFit Gym ${uniqueId}`, `Elite Fitness ${uniqueId}`, `BodyForge ${uniqueId}`, `FlexZone ${uniqueId}`],
+    healthcare: [`HealthFirst Clinic ${uniqueId}`, `WellCare Medical ${uniqueId}`, `Vital Health ${uniqueId}`, `MedPlus ${uniqueId}`],
+    restaurant: [`Savory Kitchen ${uniqueId}`, `Gourmet Bistro ${uniqueId}`, `Fresh Table ${uniqueId}`, `Culinary Arts ${uniqueId}`],
+    creative: [`Creative Studio ${uniqueId}`, `Design Hub ${uniqueId}`, `Artisan Works ${uniqueId}`, `Vision Creative ${uniqueId}`],
+    business: [`Business Pro ${uniqueId}`, `Corporate Solutions ${uniqueId}`, `Enterprise Hub ${uniqueId}`, `Success Partners ${uniqueId}`]
   };
+  
+  const variations = nameVariations[businessType] || nameVariations.business;
+  return variations[Math.floor(Math.random() * variations.length)];
 }
 
-function extractWebsiteName(userMessage: string): string {
-  const lowerMessage = userMessage.toLowerCase();
+function generateUniqueWebsite(config: any): string {
+  const { type, template, name, uniqueId } = config;
+  const [primaryColor, secondaryColor] = template.colors;
   
-  // Enhanced name extraction
-  if (lowerMessage.includes('gym') || lowerMessage.includes('fitness')) return 'FitLife Gym';
-  if (lowerMessage.includes('calculator')) return 'Modern Calculator';
-  if (lowerMessage.includes('todo')) return 'Task Manager Pro';
-  if (lowerMessage.includes('weather')) return 'Weather Station';
-  if (lowerMessage.includes('restaurant')) return 'Gourmet Restaurant';
-  if (lowerMessage.includes('healthcare') || lowerMessage.includes('clinic')) return 'Health Plus Clinic';
-  if (lowerMessage.includes('law') || lowerMessage.includes('legal')) return 'Legal Solutions';
-  if (lowerMessage.includes('beauty') || lowerMessage.includes('salon')) return 'Beauty Studio';
+  // Generate different layouts based on template style
+  const layoutVariations = {
+    modern: generateModernLayout(config),
+    corporate: generateCorporateLayout(config),
+    creative: generateCreativeLayout(config),
+    luxury: generateLuxuryLayout(config)
+  };
   
-  const businessMatches = userMessage.match(/for\s+([A-Za-z\s]+)(?:\s+website|\s+site|\s+page)/i);
-  if (businessMatches) return businessMatches[1].trim();
-  
-  const typeMatches = userMessage.match(/(portfolio|restaurant|clinic|shop|store|business|company|gym|fitness)/i);
-  if (typeMatches) return `Premium ${typeMatches[1].charAt(0).toUpperCase() + typeMatches[1].slice(1)}`;
-  
-  return 'Modern Website';
+  return layoutVariations[template.style] || layoutVariations.modern;
 }
 
-function generateModernWebsite(config: any): string {
-  const { type } = config;
+function generateModernLayout(config: any): string {
+  const { name, template, uniqueId } = config;
+  const [primaryColor, secondaryColor] = template.colors;
   
-  console.log('🎨 Generating website type:', type);
-  
-  if (type === 'gym') {
-    return generateGymWebsite(config);
-  } else if (type === 'calculator') {
-    return generateCalculatorWebsite(config);
-  } else if (type === 'todo') {
-    return generateTodoWebsite(config);
-  } else if (type === 'weather') {
-    return generateWeatherWebsite(config);
-  } else if (type === 'portfolio') {
-    return generatePortfolioWebsite(config);
-  } else if (type === 'restaurant') {
-    return generateRestaurantWebsite(config);
-  } else if (type === 'healthcare') {
-    return generateHealthcareWebsite(config);
-  } else if (type === 'ecommerce') {
-    return generateEcommerceWebsite(config);
-  } else if (type === 'landing') {
-    return generateLandingWebsite(config);
-  } else if (type === 'law') {
-    return generateLawWebsite(config);
-  } else if (type === 'beauty') {
-    return generateBeautyWebsite(config);
-  }
-  
-  return generateBusinessWebsite(config);
-}
-
-function generateCalculatorWebsite(config: any): string {
-  return `import React, { useState } from 'react';
+  return `// Template: ${template.name} | Generated: ${new Date().toISOString()} | ID: ${uniqueId}
+import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [display, setDisplay] = useState('0');
-  const [previousValue, setPreviousValue] = useState(null);
-  const [operation, setOperation] = useState(null);
-  const [waitingForNewValue, setWaitingForNewValue] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
 
-  const inputNumber = (num) => {
-    if (waitingForNewValue) {
-      setDisplay(String(num));
-      setWaitingForNewValue(false);
-    } else {
-      setDisplay(display === '0' ? String(num) : display + num);
-    }
-  };
-
-  const inputOperation = (nextOperation) => {
-    const inputValue = parseFloat(display);
-
-    if (previousValue === null) {
-      setPreviousValue(inputValue);
-    } else if (operation) {
-      const currentValue = previousValue || 0;
-      const newValue = calculate(currentValue, inputValue, operation);
-
-      setDisplay(String(newValue));
-      setPreviousValue(newValue);
-    }
-
-    setWaitingForNewValue(true);
-    setOperation(nextOperation);
-  };
-
-  const calculate = (firstValue, secondValue, operation) => {
-    switch (operation) {
-      case '+':
-        return firstValue + secondValue;
-      case '-':
-        return firstValue - secondValue;
-      case '×':
-        return firstValue * secondValue;
-      case '÷':
-        return firstValue / secondValue;
-      case '=':
-        return secondValue;
-      default:
-        return secondValue;
-    }
-  };
-
-  const performCalculation = () => {
-    const inputValue = parseFloat(display);
-
-    if (previousValue !== null && operation) {
-      const newValue = calculate(previousValue, inputValue, operation);
-      setDisplay(String(newValue));
-      setPreviousValue(null);
-      setOperation(null);
-      setWaitingForNewValue(true);
-    }
-  };
-
-  const clearDisplay = () => {
-    setDisplay('0');
-    setPreviousValue(null);
-    setOperation(null);
-    setWaitingForNewValue(false);
-  };
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="calculator-container">
-      <div className="calculator">
-        <div className="calculator-header">
-          <h1>Modern Calculator</h1>
+    <div className="app-container" data-template="${template.name}" data-id="${uniqueId}">
+      <nav className={\`navbar \${scrolled ? 'scrolled' : ''}\`}>
+        <div className="nav-container">
+          <h2 className="logo">${name}</h2>
+          <ul className="nav-menu">
+            <li><a href="#home" className="nav-link">Home</a></li>
+            <li><a href="#about" className="nav-link">About</a></li>
+            <li><a href="#services" className="nav-link">Services</a></li>
+            <li><a href="#contact" className="nav-link">Contact</a></li>
+          </ul>
         </div>
-        
-        <div className="calculator-display">
-          <div className="display-screen">{display}</div>
-        </div>
-        
-        <div className="calculator-buttons">
-          <button className="btn btn-clear" onClick={clearDisplay}>
-            AC
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('÷')}>
-            ÷
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('×')}>
-            ×
-          </button>
-          <button className="btn btn-operation" onClick={() => inputOperation('-')}>
-            -
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(7)}>
-            7
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(8)}>
-            8
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(9)}>
-            9
-          </button>
-          <button className="btn btn-operation btn-plus" onClick={() => inputOperation('+')}>
-            +
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(4)}>
-            4
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(5)}>
-            5
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(6)}>
-            6
-          </button>
-          
-          <button className="btn btn-number" onClick={() => inputNumber(1)}>
-            1
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(2)}>
-            2
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber(3)}>
-            3
-          </button>
-          <button className="btn btn-equals" onClick={performCalculation}>
-            =
-          </button>
-          
-          <button className="btn btn-number btn-zero" onClick={() => inputNumber(0)}>
-            0
-          </button>
-          <button className="btn btn-number" onClick={() => inputNumber('.')}>
-            .
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+      </nav>
 
-export default App;`;
-}
-
-function generateTodoWebsite(config: any): string {
-  return `import React, { useState } from 'react';
-
-function App() {
-  const [todos, setTodos] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-
-  const addTodo = () => {
-    if (inputValue.trim()) {
-      setTodos([...todos, { id: Date.now(), text: inputValue, completed: false }]);
-      setInputValue('');
-    }
-  };
-
-  const toggleTodo = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
-  };
-
-  const deleteTodo = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  return (
-    <div className="todo-container">
-      <div className="todo-app">
-        <h1>Task Manager</h1>
-        <div className="todo-input">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Add a new task..."
-            onKeyPress={(e) => e.key === 'Enter' && addTodo()}
-          />
-          <button onClick={addTodo}>Add</button>
-        </div>
-        <div className="todo-list">
-          {todos.map(todo => (
-            <div key={todo.id} className={\`todo-item \${todo.completed ? 'completed' : ''}\`}>
-              <input
-                type="checkbox"
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-              />
-              <span>{todo.text}</span>
-              <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateWeatherWebsite(config: any): string {
-  return `import React, { useState } from 'react';
-
-function App() {
-  const [weather, setWeather] = useState({
-    city: 'New York',
-    temperature: 22,
-    condition: 'Sunny',
-    humidity: 60,
-    windSpeed: 15
-  });
-
-  return (
-    <div className="weather-container">
-      <div className="weather-app">
-        <h1>Weather App</h1>
-        <div className="weather-card">
-          <div className="weather-main">
-            <h2>{weather.city}</h2>
-            <div className="temperature">{weather.temperature}°C</div>
-            <div className="condition">{weather.condition}</div>
-          </div>
-          <div className="weather-details">
-            <div className="detail-item">
-              <span>Humidity</span>
-              <span>{weather.humidity}%</span>
-            </div>
-            <div className="detail-item">
-              <span>Wind Speed</span>
-              <span>{weather.windSpeed} km/h</span>
+      <section className="hero-section" id="home">
+        <div className="hero-content">
+          <div className="hero-text">
+            <h1 className="hero-title">Welcome to ${name}</h1>
+            <p className="hero-subtitle">Experience excellence with our premium services</p>
+            <div className="hero-buttons">
+              <button className="btn-primary">Get Started</button>
+              <button className="btn-secondary">Learn More</button>
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="services-section" id="services">
+        <div className="container">
+          <h2 className="section-title">Our Services</h2>
+          <div className="services-grid">
+            <div className="service-card">
+              <div className="service-icon">💼</div>
+              <h3>Professional Service</h3>
+              <p>High-quality solutions tailored to your needs</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">⚡</div>
+              <h3>Fast Delivery</h3>
+              <p>Quick turnaround times without compromising quality</p>
+            </div>
+            <div className="service-card">
+              <div className="service-icon">🎯</div>
+              <h3>Targeted Results</h3>
+              <p>Focused approach to achieve your specific goals</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateCorporateLayout(config: any): string {
+  const { name, template, uniqueId } = config;
+  
+  return `// Corporate Template: ${template.name} | ID: ${uniqueId}
+import React from 'react';
+
+function App() {
+  return (
+    <div className="corporate-app" data-template="${template.name}">
+      <header className="corporate-header">
+        <div className="header-container">
+          <div className="logo-section">
+            <h1>${name}</h1>
+          </div>
+          <nav className="main-navigation">
+            <ul>
+              <li><a href="#home">Home</a></li>
+              <li><a href="#solutions">Solutions</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main className="main-content">
+        <section className="hero-banner">
+          <div className="banner-content">
+            <h2>Professional Excellence</h2>
+            <p>Leading solutions for modern businesses</p>
+            <button className="cta-button">Discover More</button>
+          </div>
+        </section>
+
+        <section className="solutions-section">
+          <div className="solutions-container">
+            <h3>Our Solutions</h3>
+            <div className="solutions-grid">
+              <div className="solution-item">
+                <h4>Strategy</h4>
+                <p>Strategic planning and consultation</p>
+              </div>
+              <div className="solution-item">
+                <h4>Implementation</h4>
+                <p>Efficient execution of your vision</p>
+              </div>
+              <div className="solution-item">
+                <h4>Support</h4>
+                <p>Ongoing support and maintenance</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateCreativeLayout(config: any): string {
+  const { name, template, uniqueId } = config;
+  
+  return `// Creative Template: ${template.name} | ID: ${uniqueId}
+import React from 'react';
+
+function App() {
+  return (
+    <div className="creative-app" data-template="${template.name}">
+      <div className="creative-container">
+        <header className="creative-header">
+          <div className="brand-section">
+            <h1 className="brand-name">${name}</h1>
+            <p className="brand-tagline">Creative Excellence</p>
+          </div>
+        </header>
+
+        <section className="creative-showcase">
+          <div className="showcase-content">
+            <h2 className="showcase-title">Unleash Creativity</h2>
+            <div className="creative-grid">
+              <div className="creative-card">
+                <div className="card-icon">🎨</div>
+                <h3>Design</h3>
+                <p>Innovative visual solutions</p>
+              </div>
+              <div className="creative-card">
+                <div className="card-icon">💡</div>
+                <h3>Innovation</h3>
+                <p>Fresh ideas and concepts</p>
+              </div>
+              <div className="creative-card">
+                <div className="card-icon">🚀</div>
+                <h3>Launch</h3>
+                <p>Bringing visions to life</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -699,408 +434,66 @@ function App() {
 export default App;`;
 }
 
-function generateReactIndex(): string {
-  return `import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './App.css';
-import App from './App';
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);`;
-}
-
-function generateModernCSS(config: any): string {
-  const { type } = config;
+function generateLuxuryLayout(config: any): string {
+  const { name, template, uniqueId } = config;
   
-  if (type === 'calculator') {
-    return generateCalculatorCSS();
-  } else if (type === 'todo') {
-    return generateTodoCSS();
-  } else if (type === 'weather') {
-    return generateWeatherCSS();
-  }
+  return `// Luxury Template: ${template.name} | ID: ${uniqueId}
+import React from 'react';
+
+function App() {
+  return (
+    <div className="luxury-app" data-template="${template.name}">
+      <nav className="luxury-navigation">
+        <div className="nav-content">
+          <div className="luxury-logo">${name}</div>
+          <ul className="luxury-menu">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#portfolio">Portfolio</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section className="luxury-hero">
+        <div className="hero-overlay">
+          <div className="luxury-content">
+            <h1 className="luxury-title">Premium Excellence</h1>
+            <p className="luxury-subtitle">Exceptional quality and sophisticated solutions</p>
+            <button className="luxury-button">Explore Collection</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="luxury-features">
+        <div className="features-container">
+          <div className="feature-item">
+            <h3>Exclusivity</h3>
+            <p>Unique and bespoke solutions</p>
+          </div>
+          <div className="feature-item">
+            <h3>Quality</h3>
+            <p>Uncompromising standards</p>
+          </div>
+          <div className="feature-item">
+            <h3>Service</h3>
+            <p>White-glove treatment</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default App;`;
+}
+
+function generateUniqueCSS(config: any): string {
+  const { template, uniqueId } = config;
+  const [primaryColor, secondaryColor] = template.colors;
   
-  return generateBusinessCSS(config);
-}
+  return `/* ${template.name} CSS Template | ID: ${uniqueId} | Generated: ${new Date().toISOString()} */
 
-function generateCalculatorCSS(): string {
-  return `/* Modern Calculator Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.calculator-container {
-  padding: 20px;
-}
-
-.calculator {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.calculator-header h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.calculator-display {
-  background: #1a1a1a;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 25px;
-}
-
-.display-screen {
-  color: white;
-  font-size: 2.5rem;
-  font-weight: 300;
-  text-align: right;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  word-break: break-all;
-}
-
-.calculator-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.btn {
-  border: none;
-  border-radius: 15px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.btn:active {
-  transform: translateY(0);
-}
-
-.btn-number {
-  background: #f8f9fa;
-  color: #333;
-}
-
-.btn-number:hover {
-  background: #e9ecef;
-}
-
-.btn-operation {
-  background: #667eea;
-  color: white;
-}
-
-.btn-operation:hover {
-  background: #5a6fd8;
-}
-
-.btn-clear {
-  background: #ff6b6b;
-  color: white;
-}
-
-.btn-clear:hover {
-  background: #ff5252;
-}
-
-.btn-equals {
-  background: #51cf66;
-  color: white;
-  grid-row: span 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-equals:hover {
-  background: #40c057;
-}
-
-.btn-zero {
-  grid-column: span 2;
-}
-
-.btn-plus {
-  grid-row: span 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@media (max-width: 480px) {
-  .calculator {
-    margin: 20px;
-    padding: 20px;
-  }
-  
-  .btn {
-    padding: 15px;
-    font-size: 1.2rem;
-  }
-  
-  .display-screen {
-    font-size: 2rem;
-  }
-}`;
-}
-
-function generateTodoCSS(): string {
-  return `/* Modern Todo App Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  min-height: 100vh;
-  padding: 20px;
-}
-
-.todo-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding-top: 50px;
-}
-
-.todo-app {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-}
-
-.todo-app h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2.5rem;
-  font-weight: 700;
-}
-
-.todo-input {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.todo-input input {
-  flex: 1;
-  padding: 15px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 15px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.todo-input input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.todo-input button {
-  background: #667eea;
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 15px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.todo-input button:hover {
-  background: #5a6fd8;
-  transform: translateY(-2px);
-}
-
-.todo-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 15px 20px;
-  background: #f8f9fa;
-  border-radius: 15px;
-  margin-bottom: 10px;
-  transition: all 0.3s ease;
-}
-
-.todo-item:hover {
-  transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.todo-item.completed {
-  opacity: 0.6;
-}
-
-.todo-item.completed span {
-  text-decoration: line-through;
-}
-
-.todo-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.todo-item span {
-  flex: 1;
-  font-size: 1.1rem;
-  color: #333;
-}
-
-.todo-item button {
-  background: #ff6b6b;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.todo-item button:hover {
-  background: #ff5252;
-}`;
-}
-
-function generateWeatherCSS(): string {
-  return `/* Modern Weather App Styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.weather-container {
-  padding: 20px;
-}
-
-.weather-app {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
-  width: 100%;
-}
-
-.weather-app h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.weather-card {
-  text-align: center;
-}
-
-.weather-main h2 {
-  color: #333;
-  font-size: 1.8rem;
-  margin-bottom: 20px;
-}
-
-.temperature {
-  font-size: 4rem;
-  font-weight: 300;
-  color: #0984e3;
-  margin-bottom: 10px;
-}
-
-.condition {
-  font-size: 1.5rem;
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.weather-details {
-  display: flex;
-  justify-content: space-between;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.detail-item span:first-child {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.detail-item span:last-child {
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 600;
-}`;
-}
-
-function generateBusinessCSS(config: any): string {
-  return `/* Modern CSS for ${config.name} */
 * {
   margin: 0;
   padding: 0;
@@ -1111,17 +504,15 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   color: #333;
-  background: #fff;
 }
 
-/* Modern Container */
-.modern-container, .restaurant-container, .healthcare-container, .ecommerce-container, .landing-container {
+.app-container, .corporate-app, .creative-app, .luxury-app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%);
 }
 
-/* Navigation */
-.navbar {
+/* Navigation Styles */
+.navbar, .corporate-header, .creative-header, .luxury-navigation {
   position: fixed;
   top: 0;
   left: 0;
@@ -1132,12 +523,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.navbar.scrolled {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-}
-
-.nav-container {
+.nav-container, .header-container, .nav-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem 2rem;
@@ -1146,85 +532,64 @@ body {
   align-items: center;
 }
 
-.logo {
+.logo, .brand-name, .luxury-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #667eea;
+  color: ${primaryColor};
 }
 
-.nav-menu {
+.nav-menu, .main-navigation ul, .luxury-menu {
   display: flex;
   list-style: none;
   gap: 2rem;
 }
 
-.nav-link {
+.nav-link, .main-navigation a, .luxury-menu a {
   text-decoration: none;
   color: #333;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
-.nav-link:hover {
-  color: #667eea;
+.nav-link:hover, .main-navigation a:hover, .luxury-menu a:hover {
+  color: ${primaryColor};
 }
 
-/* Hero Section */
-.hero-section {
+/* Hero Sections */
+.hero-section, .hero-banner, .creative-showcase, .luxury-hero {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: -1;
-}
-
-.hero-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.hero-text {
+  justify-content: center;
+  text-align: center;
   color: white;
+  position: relative;
 }
 
-.hero-title {
+.hero-title, .showcase-title, .luxury-title {
   font-size: 3.5rem;
   font-weight: 700;
-  line-height: 1.2;
   margin-bottom: 1.5rem;
+  animation: fadeInUp 1s ease;
 }
 
-.hero-subtitle {
+.hero-subtitle, .luxury-subtitle {
   font-size: 1.25rem;
   opacity: 0.9;
   margin-bottom: 2rem;
+  animation: fadeInUp 1s ease 0.2s both;
 }
 
 .hero-buttons {
   display: flex;
   gap: 1rem;
-  margin-bottom: 3rem;
+  justify-content: center;
+  animation: fadeInUp 1s ease 0.4s both;
 }
 
-.btn-primary {
-  background: #fff;
-  color: #667eea;
+.btn-primary, .cta-button, .luxury-button {
+  background: white;
+  color: ${primaryColor};
   border: none;
   padding: 1rem 2rem;
   border-radius: 50px;
@@ -1233,7 +598,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .cta-button:hover, .luxury-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
@@ -1251,107 +616,53 @@ body {
 
 .btn-secondary:hover {
   background: white;
-  color: #667eea;
+  color: ${primaryColor};
 }
 
-/* Sections */
-.container {
+/* Service Sections */
+.services-section, .solutions-section, .luxury-features {
+  padding: 5rem 0;
+  background: white;
+}
+
+.container, .solutions-container, .features-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-.section-header {
-  text-align: center;
-  margin-bottom: 4rem;
-}
-
 .section-title {
+  text-align: center;
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 3rem;
   color: #333;
 }
 
-.section-subtitle {
-  font-size: 1.25rem;
-  color: #666;
-}
-
-/* Grid Layouts */
-.services-grid, .features-grid, .products-grid {
+.services-grid, .solutions-grid, .creative-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
-  margin-top: 4rem;
+  margin-top: 3rem;
 }
 
-/* Cards */
-.service-card, .feature-card, .product-card {
+.service-card, .solution-item, .creative-card, .feature-item {
   background: white;
-  padding: 2rem;
+  padding: 2.5rem;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   text-align: center;
+  transition: all 0.3s ease;
 }
 
-.service-card:hover, .feature-card:hover, .product-card:hover {
+.service-card:hover, .creative-card:hover, .feature-item:hover {
   transform: translateY(-10px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.service-icon, .feature-icon {
+.service-icon, .card-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-}
-
-/* Forms */
-.contact-form, .appointment-form {
-  background: white;
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-input, .form-textarea {
-  padding: 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-}
-
-.form-input:focus, .form-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero-content {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .nav-menu {
-    gap: 1rem;
-  }
 }
 
 /* Animations */
@@ -1366,29 +677,80 @@ body {
   }
 }
 
-.hero-text, .service-card, .feature-card {
-  animation: fadeInUp 0.6s ease forwards;
+/* Template-specific styles */
+.corporate-app {
+  background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+}
+
+.creative-app {
+  background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.luxury-app {
+  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-title, .luxury-title {
+    font-size: 2.5rem;
+  }
+  
+  .nav-menu, .luxury-menu {
+    gap: 1rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Unique identifier for debugging */
+[data-template="${template.name}"][data-id="${uniqueId}"] {
+  --primary-color: ${primaryColor};
+  --secondary-color: ${secondaryColor};
 }`;
 }
 
-function generateModernHTML(config: any): string {
+function generateUniqueHTML(config: any): string {
+  const { name, template, uniqueId } = config;
+  
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${config.name}</title>
+    <title>${name} | ${template.name} Template</title>
+    <meta name="description" content="Website generated with ${template.name} template - ID: ${uniqueId}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="root"></div>
+    <!-- Template: ${template.name} | Generated: ${new Date().toISOString()} | ID: ${uniqueId} -->
 </body>
 </html>`;
 }
 
+function generateReactIndex(): string {
+  return `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './App.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`;
+}
+
 function generatePackageJson(siteName: string): string {
   return `{
-  "name": "${siteName.toLowerCase().replace(/\s+/g, '-')}",
+  "name": "${siteName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -1423,535 +785,21 @@ function generatePackageJson(siteName: string): string {
 }`;
 }
 
-// Create intelligent website fallback based on user requirements
-function generateBusinessWebsite(config: any): string {
-  return `import React, { useState, useEffect } from 'react';
-
-function App() {
-  const [activeSection, setActiveSection] = useState('home');
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className="modern-container">
-      <nav className={\`navbar \${isScrolled ? 'scrolled' : ''}\`}>
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#services" className="nav-link">Services</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Transform Your Business with ${config.name}</h1>
-            <p className="hero-subtitle">Experience excellence in modern business solutions designed for today's digital world</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Get Started</button>
-              <button className="btn-secondary">Learn More</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="about-section" id="about">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">About Our Company</h2>
-            <p className="section-subtitle">Building the future, one solution at a time</p>
-          </div>
-        </div>
-      </section>
-
-      <section className="services-section" id="services">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Our Services</h2>
-            <p className="section-subtitle">Comprehensive solutions for modern businesses</p>
-          </div>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">💼</div>
-              <h3>Business Consulting</h3>
-              <p>Strategic guidance to accelerate your business growth</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">⚡</div>
-              <h3>Digital Solutions</h3>
-              <p>Custom technology solutions for your business needs</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🎯</div>
-              <h3>Marketing Services</h3>
-              <p>Data-driven marketing strategies to expand your reach</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="contact-section" id="contact">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Get In Touch</h2>
-            <p className="section-subtitle">Let's discuss your project</p>
-          </div>
-          <form className="contact-form">
-            <div className="form-row">
-              <input type="text" placeholder="Your Name" className="form-input" required />
-              <input type="email" placeholder="Your Email" className="form-input" required />
-            </div>
-            <textarea placeholder="Your Message" className="form-textarea" rows="5" required></textarea>
-            <button type="submit" className="btn-primary">Send Message</button>
-          </form>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generatePortfolioWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="modern-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#portfolio" className="nav-link">Portfolio</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Creative Portfolio</h1>
-            <p className="hero-subtitle">Showcasing innovative designs and creative solutions</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">View Work</button>
-              <button className="btn-secondary">Contact Me</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="about-section" id="about">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">About Me</h2>
-            <p className="section-subtitle">Creative professional with passion for design</p>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateRestaurantWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="restaurant-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#menu" className="nav-link">Menu</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Welcome to ${config.name}</h1>
-            <p className="hero-subtitle">An unforgettable culinary experience awaits</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">View Menu</button>
-              <button className="btn-secondary">Book Table</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateHealthcareWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="healthcare-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#services" className="nav-link">Services</a></li>
-            <li><a href="#doctors" className="nav-link">Doctors</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Your Health, Our Priority</h1>
-            <p className="hero-subtitle">Comprehensive healthcare with compassion</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Book Appointment</button>
-              <button className="btn-secondary">Our Services</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateEcommerceWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="ecommerce-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#products" className="nav-link">Products</a></li>
-            <li><a href="#about" className="nav-link">About</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Shop Premium Products</h1>
-            <p className="hero-subtitle">Discover quality products at unbeatable prices</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Shop Now</button>
-              <button className="btn-secondary">View Collections</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateLandingWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="landing-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#features" className="nav-link">Features</a></li>
-            <li><a href="#pricing" className="nav-link">Pricing</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Transform Your Business</h1>
-            <p className="hero-subtitle">The ultimate solution for modern businesses</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Get Started</button>
-              <button className="btn-secondary">Learn More</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-// Additional website generators for enhanced template variety
-function generateGymWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="gym-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#classes" className="nav-link">Classes</a></li>
-            <li><a href="#trainers" className="nav-link">Trainers</a></li>
-            <li><a href="#membership" className="nav-link">Membership</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Transform Your Body, Transform Your Life</h1>
-            <p className="hero-subtitle">Join ${config.name} and achieve your fitness goals with our expert trainers</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Start Your Journey</button>
-              <button className="btn-secondary">View Classes</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="classes-section" id="classes">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Our Fitness Classes</h2>
-            <p className="section-subtitle">Diverse programs for every fitness level</p>
-          </div>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">💪</div>
-              <h3>Strength Training</h3>
-              <p>Build muscle and increase power with our strength programs</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🏃</div>
-              <h3>Cardio Classes</h3>
-              <p>High-energy workouts to boost your cardiovascular health</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🧘</div>
-              <h3>Yoga & Flexibility</h3>
-              <p>Improve flexibility and find your inner balance</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateLawWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="law-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#services" className="nav-link">Practice Areas</a></li>
-            <li><a href="#attorneys" className="nav-link">Attorneys</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Experienced Legal Representation</h1>
-            <p className="hero-subtitle">Protecting your rights with dedicated legal expertise and personalized service</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Free Consultation</button>
-              <button className="btn-secondary">Our Practice Areas</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="services-section" id="services">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Practice Areas</h2>
-            <p className="section-subtitle">Comprehensive legal services for your needs</p>
-          </div>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">⚖️</div>
-              <h3>Civil Litigation</h3>
-              <p>Expert representation in complex civil matters</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🏢</div>
-              <h3>Corporate Law</h3>
-              <p>Business formation, contracts, and corporate compliance</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">🏠</div>
-              <h3>Real Estate Law</h3>
-              <p>Property transactions and real estate disputes</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-function generateBeautyWebsite(config: any): string {
-  return `import React from 'react';
-
-function App() {
-  return (
-    <div className="beauty-container">
-      <nav className="navbar">
-        <div className="nav-container">
-          <h2 className="logo">${config.name}</h2>
-          <ul className="nav-menu">
-            <li><a href="#home" className="nav-link">Home</a></li>
-            <li><a href="#services" className="nav-link">Services</a></li>
-            <li><a href="#gallery" className="nav-link">Gallery</a></li>
-            <li><a href="#booking" className="nav-link">Book Now</a></li>
-            <li><a href="#contact" className="nav-link">Contact</a></li>
-          </ul>
-        </div>
-      </nav>
-
-      <section className="hero-section" id="home">
-        <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-text">
-            <h1 className="hero-title">Enhance Your Natural Beauty</h1>
-            <p className="hero-subtitle">Premium beauty services in a luxurious, relaxing environment</p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Book Appointment</button>
-              <button className="btn-secondary">View Services</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="services-section" id="services">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Our Beauty Services</h2>
-            <p className="section-subtitle">Professional treatments for every beauty need</p>
-          </div>
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">💄</div>
-              <h3>Makeup Services</h3>
-              <p>Professional makeup for special occasions and events</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">✨</div>
-              <h3>Skin Treatments</h3>
-              <p>Advanced facials and skincare treatments</p>
-            </div>
-            <div className="service-card">
-              <div className="service-icon">💅</div>
-              <h3>Nail Services</h3>
-              <p>Manicures, pedicures, and nail art designs</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-export default App;`;
-}
-
-// Main website generation function - Always try GROQ first
+// Main website generation function - Fixed to properly handle Groq API
 export async function generateWebsite(userMessage: string): Promise<GeneratedCode> {
-  console.log('🌟 Starting AGISOL website generation for:', userMessage);
+  console.log('🌟 Starting website generation for:', userMessage);
   
-  // ALWAYS try GROQ first with proper error handling
   try {
-    console.log('🚀 Attempting GROQ API call...');
+    console.log('🚀 Attempting Groq API call...');
     const groqResponse = await callGroqAPI(userMessage);
-    console.log('✅ GROQ API call successful, parsing response...');
+    console.log('✅ Groq API call successful');
     
     const parsedCode = parseCodeResponse(groqResponse);
-    console.log('✅ GROQ website generated successfully');
+    console.log('✅ Successfully generated website via Groq API');
     return parsedCode;
     
   } catch (groqError) {
-    console.error('❌ GROQ API failed:', groqError);
-    console.log('🔄 Falling back to intelligent template generation...');
-    
-    // Enhanced fallback with unique template selection
-    return createIntelligentFallback(userMessage);
-  }
-}
-
-async function tryLocalLLMGeneration(userMessage: string): Promise<GeneratedCode> {
-  try {
-    // Create a base template first
-    const baseTemplate = createIntelligentFallback(userMessage);
-    const localResponse = await callLocalLLM(JSON.stringify(baseTemplate), userMessage);
-    const parsedCode = parseCodeResponse(localResponse);
-    console.log('✅ Local LLM website generated successfully');
-    return parsedCode;
-  } catch (error) {
-    console.log('⚠️ Local LLM failed, using intelligent fallback');
+    console.error('❌ Groq API failed, using intelligent fallback:', groqError);
     return createIntelligentFallback(userMessage);
   }
 }

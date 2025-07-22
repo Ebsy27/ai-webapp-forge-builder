@@ -1,7 +1,7 @@
 
-// API Configuration - Updated with working Groq API key
+// API Configuration - Using a fresh working Groq API key
 const GROQ_API_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 
 export interface GeneratedCode {
   [filename: string]: { code: string };
@@ -114,7 +114,7 @@ TECHNICAL REQUIREMENTS:
 Make this a complete, production-ready website that a business could actually use. Return only the JSON object with complete React application code.`;
 
     const requestBody = {
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama3-70b-8192',
       messages: [
         {
           role: 'system',
@@ -125,9 +125,10 @@ Make this a complete, production-ready website that a business could actually us
           content: enhancedPrompt
         }
       ],
-      temperature: 0.9,
-      max_tokens: 4000,
-      top_p: 0.9
+      temperature: 0.8,
+      max_tokens: 8192,
+      top_p: 0.8,
+      stream: false
     };
     
     console.log('📤 Making Groq API request...');
